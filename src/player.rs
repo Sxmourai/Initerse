@@ -4,9 +4,9 @@ use super::*;
 
 thread_local! {
     pub static CONTROLS: RefCell<[(KeyCode, Vec2); 4]> = RefCell::new([
-        (KeyCode::W, Vec2::Y),
+        (KeyCode::W, Vec2::NEG_Y),
         (KeyCode::A, Vec2::NEG_X),
-        (KeyCode::S, Vec2::NEG_Y),
+        (KeyCode::S, Vec2::Y),
         (KeyCode::D, Vec2::X),
     ])
 }
