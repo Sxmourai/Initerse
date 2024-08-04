@@ -1,0 +1,20 @@
+[package]
+name = "initerse"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+color-eyre = "0.6.3"
+hashbrown = "0.14.5"
+macroquad = "0.4.11"
+
+[profile.dev]
+opt-level = 1
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.dbg]
+inherits = "dev"
+opt-level = 0
+[profile.dbg.package."*"]
+opt-level = 0
