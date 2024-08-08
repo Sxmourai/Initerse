@@ -47,9 +47,9 @@ impl Player {
 }
 pub fn new() -> Player {
     Player {
-        pos: Vec2::ZERO,
+        pos: Vec2::splat(0.001), // Simple fix, because we use ceil for tile drawing
         vel: Vec2::ZERO,
-        acceleration: 1.5,
+        acceleration: 2.5,
         max_vel: 10.,
         damping: 0.9,
     }

@@ -7,6 +7,9 @@ edition = "2021"
 color-eyre = "0.6.3"
 hashbrown = "0.14.5"
 macroquad = "0.4.11"
+rand = "0.8.5"
+strum = "0.26.3"
+strum_macros = "0.26.4"
 
 [profile.dev]
 opt-level = 1
@@ -18,3 +21,6 @@ inherits = "dev"
 opt-level = 0
 [profile.dbg.package."*"]
 opt-level = 0
+
+[profile.release]
+debug = true
