@@ -16,6 +16,7 @@ impl Hotbar {
                 let mut slots = [Tower::Empty; SLOTS];
                 slots[0] = Tower::Electron;
                 slots[1] = Tower::StringCreator;
+                slots[2] = Tower::Energy;
                 slots
             },
         }
@@ -40,7 +41,7 @@ impl Hotbar {
                 let idx = slot_x as usize;
                 build_mode.current = self.slots[idx];
             }
-        } 
+        }
         Ok(on_hotbar)
     }
 }

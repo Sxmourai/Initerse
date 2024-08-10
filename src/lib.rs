@@ -4,6 +4,7 @@
 // Very usefull to initialise empty arrays
 // + It's experimental because they are not 100% okay about semantics
 #![feature(inline_const_pat)]
+#![feature(get_mut_unchecked)]
 // #![warn(clippy::unused_async)]
 
 use std::sync::{Arc, Mutex};
@@ -24,7 +25,7 @@ use tower::{EmptyMachine, Tower};
 
 pub async fn _main() -> Result<()> {
     tower::setup_cache_tower_textures().await?;
-    let mut world = World::empty().await?;
+    let mut world = World::empty();
     tiles::set_world(world);
     let mut world = get_world!();
     world.set_tower(ivec2(-1, -1), Tower::Electron.new_machine().unwrap());
@@ -37,7 +38,7 @@ pub async fn _main() -> Result<()> {
         let dt = get_frame_time();
         
         player.update(dt);
-        world.update(dt)?;
+        world.update(player.pos, dt)?;
         
         world.draw(player.pos).await?;
         let on_hot = hotbar.draw(&mut build_mode).await?;

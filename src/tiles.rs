@@ -1,14 +1,19 @@
 
-use std::{cell::{Cell, OnceCell, RefCell}, sync::{Arc, Mutex, MutexGuard}};
+use std::{cell::{Cell, OnceCell, RefCell}, rc::Rc, sync::{Arc, Mutex, MutexGuard}};
 
 use build_mode::BuildMode;
+use color_eyre::eyre::ContextCompat;
 use tower::{EmptyMachine, Machine};
 
 use super::*;
 
 pub const BASE_TILE_SIZE: f32 = 48.;
+pub const BASE_UPDATE_RADIUS: usize = 50;
 
-pub type DynMachine = Arc<Mutex<dyn Machine>>;
+pub type DynMachine = Rc<dyn Machine>;
+pub fn new_machine(machine: impl Machine + 'static) -> DynMachine {
+    Rc::new(machine)
+}
 thread_local! {
     pub static EMPTY_MACHINE: OnceCell<DynMachine> = OnceCell::new();
 }
@@ -22,20 +27,27 @@ macro_rules! get_world {
 pub fn set_world(world: World) {
     unsafe { tiles::WORLD.replace(world) };
 }
+pub type Map = hashbrown::HashMap<IVec2, DynMachine>;
 
 pub struct World {
-    map: hashbrown::HashMap<IVec2, DynMachine>,
+    map: Map,
+    enabled_gui: Option<IVec2>,
     tilesize: f32,
-    enabled_gui: Option<(IVec2, DynMachine)>,
+    update_radius: usize,
 }
 impl World {
     pub const fn tilesize(&self) -> f32 {self.tilesize}
-    pub async fn empty() -> Result<Self> {
-        Ok(Self { map: Default::default(), tilesize: BASE_TILE_SIZE, enabled_gui: None })
+    pub fn empty() -> Self {
+        Self { 
+            map: Default::default(), 
+            tilesize: BASE_TILE_SIZE, 
+            enabled_gui: None, 
+            update_radius: BASE_UPDATE_RADIUS
+        }
     }
     pub fn set_tower(&mut self, coords: IVec2, machine: impl Into<DynMachine>) -> Option<DynMachine> {
         let machine = machine.into();
-        if machine.lock().unwrap().ty() == Tower::Empty {
+        if machine.ty() == Tower::Empty {
             self.map.remove(&coords)
         } else {
             self.map.insert(coords, machine)
@@ -56,7 +68,7 @@ impl World {
         self.map.get(coords).cloned()
     }
     pub async fn get_tower_texture(&self, coords: &IVec2) -> Texture2D {
-        self.get_tower(coords).lock().unwrap().texture()
+        self.get_tower(coords).texture()
     }
     pub fn screen_to_world(&self, scr: Vec2, player_cell: Vec2) -> IVec2 {
         vec2i((scr/self.tilesize()+player_cell).floor())
@@ -90,8 +102,9 @@ impl World {
         if is_key_released(KeyCode::Escape) {
             self.enabled_gui = None;return Ok(())
         }
-        let rect = if let Some((coords, machine)) = &mut self.enabled_gui {
-            let mut machine = machine.lock().unwrap();
+        let rect = if let Some(coords) = self.enabled_gui {
+            let mut m = self.get_tower(&coords);
+            let mut machine = unsafe {Rc::get_mut_unchecked(&mut m)};
             machine.update_gui()?;
             machine.draw_gui()?
         } else {Rect::default()};
@@ -99,10 +112,10 @@ impl World {
         if is_mouse_button_released(MouseButton::Left) && build_mode.current == Tower::Empty && !rect.contains(mp) {
             let cell = self.screen_to_world(mp, player_cell);
             if let Some(machine_arc) = self.try_get_tower(&cell) {
-                if self.enabled_gui.is_some() && self.enabled_gui.as_ref().unwrap().0 == cell {
+                if self.enabled_gui.is_some() && self.enabled_gui.unwrap() == cell {
                     self.enabled_gui = None;
                 } else {
-                    self.enabled_gui.replace((cell, machine_arc));
+                    self.enabled_gui.replace(cell);
                 }
             }
         }
@@ -111,21 +124,41 @@ impl World {
     }
     pub fn control_tilesize(&mut self) -> Result<()> {
         let (wx, mut wy) = mouse_wheel();
-        // dbg!(wy);
-        // wy *= -1.;
-        // if wy < 0. {wy = 1./wy}
-        // let new = (self.tilesize-BASE_TILE_SIZE).log2()+wy;
-        // self.tilesize = 10.0f32.max(new+BASE_TILE_SIZE);
+        let zoom_factor = 1.1; 
+
+        if wy > 0.0 { // Scroll up (zoom in)
+            self.tilesize *= zoom_factor;
+        } else if wy < 0.0 { // Scroll down (zoom out)
+            self.tilesize /= zoom_factor;
+        }
+
+        let min_tilesize = 10.0;
+        let max_tilesize = 256.0;
+        self.tilesize = self.tilesize.clamp(min_tilesize, max_tilesize);
         Ok(())
     }
-    pub fn remove_gui(&mut self) -> Option<(IVec2, DynMachine)> {
+    pub fn remove_gui(&mut self) -> Option<IVec2> {
         self.enabled_gui.take()
     }
 
-    pub fn update(&mut self, dt: f32) -> Result<()> {
-        for (coords, machine) in self.map.iter_mut() {
-            let mut machine = machine.lock().unwrap();
-            machine.update(dt)?;
+    pub fn update(&mut self, player_cell: Vec2, dt: f32) -> Result<()> {
+        let keys = {
+            let mut keys = Vec::new();
+            for x in 0..self.update_radius {
+                for y in 0..self.update_radius {
+                    let coords = ivec2(x as i32+player_cell.x as i32-(self.update_radius as i32/2), y as i32+player_cell.y as i32-(self.update_radius as i32/2));
+                    if self.map.contains_key(&coords) {
+                        keys.push(coords);
+                    }
+                }
+            }
+            keys
+        };
+        for coords in keys {
+            let mut machine_rc = self.map.get_mut(&coords).unwrap().clone();
+            // The update function just operates on the tiles, but not on the whole hashmap
+            let mut machine = unsafe {Rc::get_mut_unchecked(&mut machine_rc)};
+            machine.update(&mut self.map, dt)?;
         }
         Ok(())
     }
