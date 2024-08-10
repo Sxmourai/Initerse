@@ -19,18 +19,28 @@ pub mod player;
 pub mod hotbar;
 pub mod build_mode;
 pub mod tower;
+pub mod celestial;
+
 use tower::{EmptyMachine, Tower};
 
 
 
 pub async fn _main() -> Result<()> {
     tower::setup_cache_tower_textures().await?;
-    let mut world = World::empty();
+    let seed = ::rand::random();
+    println!("Generating world with seed: {}", seed);
+    rand::srand(seed);
+    let mut world = World::new(seed).await;
     tiles::set_world(world);
     let mut world = get_world!();
     world.set_tower(ivec2(-1, -1), Tower::Electron.new_machine().unwrap());
     world.set_tower(ivec2(0, 0), Tower::StringCreator.new_machine().unwrap());
     world.set_tower(ivec2(1, 1), Tower::Electron.new_machine().unwrap());
+    // for i in 0..1_000_000 {
+    //     let x = i%1_000;
+    //     let y = i/1_000;
+    //     world.set_tower(ivec2(x, y), Tower::Electron.new_machine().unwrap());
+    // }
     let mut hotbar = hotbar::Hotbar::new();
     let mut player = player::new();
     let mut build_mode = build_mode::BuildMode::new();
@@ -58,4 +68,15 @@ pub fn vec2i(vec2f: Vec2) -> IVec2 {
 }
 pub fn vec2i_to_f(vec2i: IVec2) -> Vec2 {
     Vec2::new(vec2i.x as _, vec2i.y as _)
+}
+
+
+
+
+// Based on quad_rand, but we can't get there seed
+/// returns a pseudo-random number in the range of 0 to u32::MAX and the new seed
+pub fn rand_with_seed(seed: u64) -> (u32, u64) {
+    let xorshifted: u32 = (((seed >> 18) ^ seed) >> 27) as u32;
+    let rot: u32 = (seed >> 59) as u32;
+    (xorshifted.rotate_right(rot), seed.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407))
 }

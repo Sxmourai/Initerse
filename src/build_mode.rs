@@ -24,7 +24,7 @@ impl BuildMode {
         if is_mouse_button_down(MouseButton::Left) || (is_mouse_button_down(MouseButton::Right) && self.current == Tower::Empty) {
             let _prev = world.set_tower(world_cell, self.current.new_machine().context("Can't build new machine")?);
         }
-        let scr = world.world_to_screen(world_cell, offset)-(player_cell.floor())*world.tilesize();
+        let scr = world.world_to_screen_offset(world_cell, offset)-(player_cell.floor())*world.tilesize();
         draw_texture_ex(&texture, scr.x, scr.y, Color::from_rgba(255,255,255,150), DrawTextureParams { dest_size: Some(Vec2::splat(world.tilesize())), ..Default::default() });
         Ok(())
     }

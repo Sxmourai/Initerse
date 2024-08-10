@@ -1,0 +1,5 @@
+flavor = "planet"
+path = "planet mercury.png"
+# Size in tiles
+size = [50, 50]
+resources = ["Iron", "Sulfur", "Titanium"]

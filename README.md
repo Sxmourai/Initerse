@@ -17,3 +17,8 @@ You can make different machines for every fermions, and if you want to know more
 ### Monsters
 
 The monsters are made of antimatter. They are pretty strong, because when they touch any of your infrastructure, both the monster and a part of your base explodes
+
+
+# Copyright
+
+Some of the images (notably of stars and planets come from [NASA](nasa.gov))
