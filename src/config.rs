@@ -284,7 +284,4 @@ impl ConfigMenu {
         }
         false
     }
-    pub fn draw(&self) {
-        
-    }
 }

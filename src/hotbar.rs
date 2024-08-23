@@ -1,4 +1,5 @@
 use build_mode::BuildMode;
+use strum::{EnumProperty, IntoEnumIterator};
 
 use super::*;
 
@@ -14,9 +15,13 @@ impl Hotbar {
         Self {
             slots: {
                 let mut slots = [Tower::Empty; SLOTS];
-                slots[0] = Tower::Electron;
-                slots[1] = Tower::StringCreator;
-                slots[2] = Tower::Energy;
+                let mut si = 0;
+                for (i, tower) in Tower::iter().enumerate() {
+                    if tower.get_str("buildable") == Some("true") {
+                        slots[si] = tower;
+                        si += 1;
+                    }
+                }
                 slots
             },
         }

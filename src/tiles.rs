@@ -209,7 +209,6 @@ impl World {
         let rect = if let Some(coords) = self.enabled_gui {
             let mut m = self.get_tower(&coords);
             let mut machine = unsafe {Rc::get_mut_unchecked(&mut m)};
-            machine.update_gui()?;
             machine.draw_gui()?
         } else {Rect::default()};
         let mp = mouse_position().into();
@@ -265,5 +264,49 @@ impl World {
             machine.update(&mut self.map, dt)?;
         }
         Ok(())
+    }
+    pub fn save(&mut self) -> Result<()> {
+        let mut raw = String::new();
+        use std::fmt::Write;
+        writeln!(raw, "Seed = {}", self.seed)?;
+        let mut map = String::new();
+        for (coords, tower) in self.map.iter() {
+            writeln!(map, "    {}: {:?} {{{}}}", coords, tower.ty(), tower.serialize())?;
+        }
+        writeln!(raw, "World = [\n{}]", map)?;
+        if std::fs::exists("saves")? == false {
+            std::fs::create_dir("saves")?
+        }
+        std::fs::write(&format!("saves/{}", self.seed), raw)?;
+        Ok(())
+    }
+    pub async fn load(raw: String) -> Result<Self> {
+        let mut lines = raw.split("\n");
+        let seed: u64 = lines.next().context("Need seed information for world")?["Seed = ".len()..].parse()?;
+        let world_start = raw.find("World = [\n").context("Need world map")?+"World = [".len();
+        let tower_lines = raw[world_start..].split("\n").skip(1);
+        let mut map = Map::new();
+        fn parse_line(l: &str) -> Result<(IVec2, DynMachine)> {
+            let x_end = l.find(",").context("Can't get x coordinate of machine")?; 
+            let x = l[1..x_end].parse()?; // Skip [
+            let y_end = l.find("]: ").context("Can't get y coordinate of machine")?;
+            let y = l[x_end+2..y_end].parse()?; // Skip ", "
+            let coord = ivec2(x, y);
+            let tower = &l[y_end+3..];
+            let args_start = tower.find(" {").context("Can't get machine args")?;
+            let tower_ty = <Tower as std::str::FromStr>::from_str(&tower[..args_start])?;
+            let tower_args = &tower[args_start+2..tower.len()-1];
+            Ok((coord, tower_ty.deserialize_machine(tower_args)?))
+        }
+        for l in tower_lines {
+            let l = l.trim();
+            if l.is_empty() {continue}
+            if let Ok((coord, machine)) = parse_line(l) {
+                map.insert(coord, machine);
+            }
+        }
+        let mut slf = Self::new(seed).await;
+        slf.map = map;
+        Ok(slf)
     }
 }

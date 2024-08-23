@@ -1,0 +1,22 @@
+Seed = 1022
+World = [
+    [-1, -1]: Electron {buffer: 40.193592}
+    [11, 4]: AntimatterCollector {}
+    [8, 11]: Electron {buffer: 14.217426}
+    [6, 11]: Electron {buffer: 13.420746}
+    [7, 10]: Electron {buffer: 15.565561}
+    [13, 4]: AntimatterCollector {}
+    [4, 10]: Electron {buffer: 15.596752}
+    [10, 10]: Electron {buffer: 14.759535}
+    [12, 4]: AntimatterCollector {}
+    [2, 10]: Electron {buffer: 15.63891}
+    [7, 11]: Electron {buffer: 13.154881}
+    [9, 11]: Electron {buffer: 14.299355}
+    [5, 11]: Electron {buffer: 13.5317135}
+    [10, 11]: Electron {buffer: 14.534143}
+    [3, 10]: Electron {buffer: 15.629589}
+    [1, 1]: Electron {buffer: 40.193592}
+    [8, 10]: Electron {buffer: 15.549978}
+    [9, 10]: Electron {buffer: 15.533783}
+    [5, 10]: Electron {buffer: 15.580648}
+]

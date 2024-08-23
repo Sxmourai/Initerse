@@ -8,8 +8,7 @@ fn window_conf() -> Conf {
         ..Default::default()
     }
 }
-#[macroquad::main(window_conf)]
-async fn main() {
+fn main() {
     color_eyre::install().unwrap();
-    _main().await.unwrap()
+    macroquad::Window::from_config(window_conf(), async {_main().await.unwrap()});
 }

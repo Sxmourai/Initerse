@@ -7,11 +7,12 @@
 #![feature(get_mut_unchecked)]
 // #![warn(clippy::unused_async)]
 
-use std::sync::{Arc, Mutex};
+use std::{fs::read_to_string, path::PathBuf, sync::{Arc, Mutex}};
 
 use config::Config;
 pub use macroquad::prelude::*;
 pub use color_eyre::{Result,Report};
+use miniquad::window::order_quit;
 use tiles::{World, EMPTY_MACHINE};
 
 pub mod tiles;
@@ -35,7 +36,10 @@ pub async fn _main() -> Result<()> {
         if button(Rect::new(screen_width()/2.0-100., screen_height()/2.0-100., 200., 50.), "New world", 32., DARKGRAY) {
             new_world_scene().await?;
         }
-        if button(Rect::new(screen_width()/2.0-100., screen_height()/2.0, 200., 50.), "Options", 32., DARKGRAY) {
+        if button(Rect::new(screen_width()/2.0-100., screen_height()/2.0, 200., 50.), "Load world", 32., DARKGRAY) {
+            load_world_scene().await?;
+        }
+        if button(Rect::new(screen_width()/2.0-100., screen_height()/2.0+100., 200., 50.), "Options", 32., DARKGRAY) {
             options_scene().await?;
         }
         if button(Rect::new(screen_width()/2.0-100., screen_height()-100., 200., 50.), "Quit", 32., DARKGRAY) {
@@ -55,9 +59,44 @@ async fn new_world_scene() -> Result<()> {
             for b in seed_inp.text.bytes() {
                 seed_n += b as u64;
             }
-            return game_loop(seed_n).await
+            println!("Generating world with seed: {}", seed_n);
+            rand::srand(seed_n);
+            let mut world = World::new(seed_n).await;
+            world.set_tower(ivec2(-1, -1), Tower::Electron.new_machine().unwrap());
+            // world.set_tower(ivec2(0, 0), Tower::StringCreator.new_machine().unwrap());
+            world.set_tower(ivec2(1, 1), Tower::Electron.new_machine().unwrap());
+            return game_loop(world).await
         }
         seed_inp.draw();
+
+        next_frame().await;
+    }
+}
+fn get_saves() -> Vec<PathBuf> {
+    let dir = match std::fs::read_dir("saves") {
+        Ok(dir) => dir,
+        Err(e) => {
+            miniquad::warn!("Can't open saves folder ! {:?}", e);
+            return vec![]
+        },
+    };
+    let mut saves = vec![]; // Vec::with_capacity(dir.count())
+    for save in dir {
+        if let Ok(save) = save {
+            saves.push(save.path())
+        }
+    }
+    saves
+}
+async fn load_world_scene() -> Result<()> {
+    let saves = get_saves();
+    loop {
+        for (i,save) in saves.iter().enumerate() {
+            if button(Rect::new(screen_width()/2.0-100., screen_height()/2.0-200.+75.*i as f32, 200., 50.), &format!("{:?}", save), 32., DARKGRAY) {
+                let mut world = World::load(read_to_string(save)?).await?;
+                return game_loop(world).await
+            }
+        }
 
         next_frame().await;
     }
@@ -68,32 +107,44 @@ async fn options_scene() -> Result<()> {
         if config_menu.update() {
             return Ok(())
         }
-        config_menu.draw();
 
         next_frame().await;
     }
 }
-async fn game_loop(seed: u64) -> Result<()> {
-    println!("Generating world with seed: {}", seed);
-    rand::srand(seed);
-    let mut world = World::new(seed).await;
+async fn game_options_scene() -> Result<()> {
+    let mut config_menu = config::ConfigMenu::new();
+    loop {
+        if config_menu.update() {
+            return Ok(())
+        }
+        if button(Rect::new(10., screen_height()-100., 200., 50.), "Save & Quit", 32., DARKGRAY) {
+            get_world!().save().unwrap();
+            miniquad::window::order_quit();
+        }
+        if button(Rect::new(screen_width()-200.0-10., screen_height()-100., 100., 50.), "Force Quit", 32., DARKGRAY) {
+            miniquad::window::order_quit();
+        }
+
+        next_frame().await;
+    }
+}
+async fn game_loop(world: World) -> Result<()> {
+    prevent_quit();
     tiles::set_world(world);
     let mut world = get_world!();
-    world.set_tower(ivec2(-1, -1), Tower::Electron.new_machine().unwrap());
-    world.set_tower(ivec2(0, 0), Tower::StringCreator.new_machine().unwrap());
-    world.set_tower(ivec2(1, 1), Tower::Electron.new_machine().unwrap());
-    // for i in 0..1_000_000 {
-    //     let x = i%1_000;
-    //     let y = i/1_000;
-    //     world.set_tower(ivec2(x, y), Tower::Electron.new_machine().unwrap());
-    // }
     let mut hotbar = hotbar::Hotbar::new();
     let mut player = player::new();
     let mut build_mode = build_mode::BuildMode::new();
     loop {
+        if is_quit_requested() {
+            unsafe { config::CONFIG.get().unwrap().write().unwrap() }
+            world.save().unwrap();
+            order_quit();
+            return Ok(())
+        }
         let dt = get_frame_time();
         if is_key_down(KeyCode::Escape) {
-            options_scene().await?;
+            game_options_scene().await?;
         }
 
         player.update(dt);
