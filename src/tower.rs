@@ -1,6 +1,6 @@
 use color_eyre::eyre::ContextCompat;
 use macroquad::ui::root_ui;
-use strum::{EnumCount, IntoEnumIterator};
+use strum::{EnumCount, EnumProperty, IntoEnumIterator};
 use tiles::{new_machine, DynMachine, Map, WORLD};
 
 use super::*;
@@ -20,29 +20,25 @@ pub async fn setup_cache_tower_textures() -> Result<()> {
     Ok(())
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, strum_macros::EnumIter, strum_macros::EnumCount)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, strum_macros::EnumIter, strum_macros::EnumCount, strum_macros::EnumProperty)]
 pub enum Tower {
+    #[strum(props(asset_path = "empty.png"))]
     Empty,
+    #[strum(props(asset_path = "electron.png"))]
     Electron,
+    #[strum(props(asset_path = "string creator.png"))]
     StringCreator,
+    #[strum(props(asset_path = "energy.png"))]
     Energy,
-    Water,
-    Grass,
-    Ice,
 }
 impl Default for Tower {fn default() -> Self {Self::Empty}}
 impl Tower {
+    pub fn texture_path(self) -> &'static str {
+        self.get_str("asset_path").unwrap_or(Self::default().get_str("asset_path").unwrap())
+    } 
     /// loads a new texture, expensive
     pub async fn load_texture(self) -> Result<Texture2D> {
-        let texture = match self {
-            Tower::Empty => load_texture("assets/empty.png").await?,
-            Tower::Water => load_texture("assets/water.png").await?,
-            Tower::Grass => load_texture("assets/grass.png").await?,
-            Tower::Ice   => load_texture("assets/ice.png").await?,
-            Tower::Electron => load_texture("assets/electron.png").await?,
-            Tower::StringCreator => load_texture("assets/string creator.png").await?,
-            Tower::Energy => load_texture("assets/energy.png").await?,
-        };
+        let texture = load_texture(&format!("assets/{}", self.texture_path())).await?;
         Ok(texture)
     }
     pub fn try_loaded_texture(self) -> Option<Texture2D> {
@@ -62,9 +58,6 @@ impl Tower {
             Tower::Electron => new_machine(Electron::new()),
             Tower::StringCreator => new_machine(StringCreator::new()),
             Tower::Energy => new_machine(Energy::new()),
-            Tower::Water    => return None,
-            Tower::Grass    => return None,
-            Tower::Ice      => return None,
         })
     }
 }

@@ -1,13 +1,15 @@
 use std::{borrow::Borrow, cell::RefCell};
 
+use config::{Action, CONFIG};
+
 use super::*;
 
 thread_local! {
-    pub static CONTROLS: RefCell<[(KeyCode, Vec2); 4]> = RefCell::new([
-        (KeyCode::W, Vec2::NEG_Y),
-        (KeyCode::A, Vec2::NEG_X),
-        (KeyCode::S, Vec2::Y),
-        (KeyCode::D, Vec2::X),
+    pub static CONTROLS: RefCell<[(Action, Vec2); 4]> = RefCell::new([
+        (Action::Forward, Vec2::NEG_Y),
+        (Action::Left, Vec2::NEG_X),
+        (Action::Backward, Vec2::Y),
+        (Action::Right, Vec2::X),
     ])
 }
 
@@ -23,9 +25,10 @@ pub struct Player {
 impl Player {
     pub fn update(&mut self, dt: f32) {
         let mut accel = Vec2::ZERO;
+        let config = unsafe { CONFIG.get_mut().unwrap() };
         CONTROLS.with_borrow(|keys| {
-            for (key, dir) in keys {
-                if macroquad::input::is_key_down(*key) {
+            for (action, dir) in keys {
+                if macroquad::input::is_key_down(*config.keymap.get(action).unwrap()) {
                     accel += *dir;
                 }
             }

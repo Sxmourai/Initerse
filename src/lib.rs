@@ -9,6 +9,7 @@
 
 use std::sync::{Arc, Mutex};
 
+use config::Config;
 pub use macroquad::prelude::*;
 pub use color_eyre::{Result,Report};
 use tiles::{World, EMPTY_MACHINE};
@@ -20,14 +21,59 @@ pub mod hotbar;
 pub mod build_mode;
 pub mod tower;
 pub mod celestial;
+pub mod gui;
+pub mod config;
 
 use tower::{EmptyMachine, Tower};
-
+use gui::*;
 
 
 pub async fn _main() -> Result<()> {
     tower::setup_cache_tower_textures().await?;
-    let seed = ::rand::random();
+    unsafe { config::CONFIG.set(Config::get()).unwrap() }
+    loop {
+        if button(Rect::new(screen_width()/2.0-100., screen_height()/2.0-100., 200., 50.), "New world", 32., DARKGRAY) {
+            new_world_scene().await?;
+        }
+        if button(Rect::new(screen_width()/2.0-100., screen_height()/2.0, 200., 50.), "Options", 32., DARKGRAY) {
+            options_scene().await?;
+        }
+        if button(Rect::new(screen_width()/2.0-100., screen_height()-100., 200., 50.), "Quit", 32., DARKGRAY) {
+            break
+        }
+        next_frame().await;
+    }
+    Ok(())
+}
+async fn new_world_scene() -> Result<()> {
+    let seed = format!("{}", ::rand::random::<u64>());
+    let mut seed_inp = TextBox::new(seed, Rect::new(screen_width()/2.0-100., screen_height()/2.0-100., 200., 50.), DARKBLUE);
+    loop {
+        seed_inp.update();
+        if button(Rect::new(screen_width()/2.0-100., screen_height()/2.0+100., 200., 50.), "Play", 32., DARKGRAY) {
+            let mut seed_n = 0;
+            for b in seed_inp.text.bytes() {
+                seed_n += b as u64;
+            }
+            return game_loop(seed_n).await
+        }
+        seed_inp.draw();
+
+        next_frame().await;
+    }
+}
+async fn options_scene() -> Result<()> {
+    let mut config_menu = config::ConfigMenu::new();
+    loop {
+        if config_menu.update() {
+            return Ok(())
+        }
+        config_menu.draw();
+
+        next_frame().await;
+    }
+}
+async fn game_loop(seed: u64) -> Result<()> {
     println!("Generating world with seed: {}", seed);
     rand::srand(seed);
     let mut world = World::new(seed).await;
@@ -46,7 +92,10 @@ pub async fn _main() -> Result<()> {
     let mut build_mode = build_mode::BuildMode::new();
     loop {
         let dt = get_frame_time();
-        
+        if is_key_down(KeyCode::Escape) {
+            options_scene().await?;
+        }
+
         player.update(dt);
         world.update(player.pos, dt)?;
         
