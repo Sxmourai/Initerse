@@ -50,17 +50,27 @@ pub fn change_selected(
     slots: Query<(&Interaction, &Slot), (Changed<Interaction>, With<Button>)>,
     mut selected_machine: Query<(&mut SelectedMachine, &mut Visibility, &mut MeshMaterial2d<ColorMaterial>)>,
     machines: Res<MachineMaterialsHandles>,
+    mut mouse: ResMut<ButtonInput<MouseButton>>,
+    keys: Res<ButtonInput<KeyCode>>,
 ) {
     for (button, slot) in slots.iter() {
         match button {
             Interaction::Pressed => {
-                let (mut mac, mut vis, mut material) = selected_machine.single_mut();
+                let (mut mac, mut vis, mut material) = selected_machine.single_mut().unwrap();
                 mac.inner.replace(slot.inner.clone());
                 *vis = Visibility::Visible;
                 material.0 = machines.mats[slot.inner.as_index()].clone_weak();
+                mouse.clear_just_pressed(MouseButton::Left);
             },
             _ => {}
         }
+    }
+    if keys.just_pressed(KeyCode::Escape) || mouse.just_pressed(MouseButton::Right) {
+        let (mut mac, mut vis, mut material) = selected_machine.single_mut().unwrap();
+        mac.inner = None;
+        *vis = Visibility::Hidden;
+        // material.0 = ; Don't change it but shoudln't be an issue
+        mouse.clear_just_pressed(MouseButton::Right);
     }
 }
 
@@ -73,8 +83,8 @@ pub fn build_placeholder(
     machines: Res<MachineMaterialsHandles>,
     camera_q: Query<(&Camera, &GlobalTransform), With<Camera2d>>,
 ) {
-    let mut selected_machine = selected_machine.single_mut();
-    match window_q.get_single() {
+    let mut selected_machine = selected_machine.single_mut().unwrap();
+    match window_q.single() {
         Ok(w) => {
             if let Some(pos) = w.cursor_position() {
                 let mut pos = screen_to_world_pos(pos, camera_q);

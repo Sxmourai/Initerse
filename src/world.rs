@@ -1,6 +1,5 @@
 use noise::Perlin;
 use strum::{EnumProperty, IntoEnumIterator};
-use utils::hashbrown::HashMap;
 
 use crate::{machines::{self, MachineType}, prelude::*, saves::GameConfig};
 
@@ -14,7 +13,7 @@ pub const TILE_HEIGHT: f32 = 32.0;
 #[derive(Resource)]
 pub struct World {
     pub frame_diff: Vec<(IVec2, Machine)>,
-    pub diff: HashMap<IVec2, Machine>,
+    pub diff: std::collections::HashMap<IVec2, Machine>,
     pub config: Handle<GameConfig>
 }
 impl World {
@@ -72,6 +71,7 @@ pub fn load_mats_n_mesh(
     mut mats_assets: ResMut<Assets<ColorMaterial>>,
     images: Res<AssetServer>,
 ) {
+    bevy::log::info!("Loading materials & meshes...");
     let mut imgs = vec![];
     let mut mats = vec![];
     for ty in MachineType::iter() {

@@ -22,7 +22,7 @@ pub fn movement(
     mut camera: Query<(&mut Transform, &mut PlayerCamera)>,
     inputs: Res<ButtonInput<KeyCode>>,
 ) {
-    let (mut trans, mut cam) = camera.single_mut();
+    let (mut trans, mut cam) = camera.single_mut().unwrap();
     if inputs.pressed(KeyCode::KeyW) {
         cam.movement_speed.y += cam.movement_accel;
     }
@@ -51,7 +51,7 @@ pub fn zoom(
     for ev in evr_scroll.read() {
         match ev.unit {
             MouseScrollUnit::Line => { // ev.y between -1 and 1, so we can scale it
-                let mut t = camera.single_mut().0;
+                let mut t = camera.single_mut().unwrap().0;
                 let scale = ev.y * -1.;
                 t.scale.x += scale;
                 t.scale.x = t.scale.x.abs().clamp(0.1, 1000.);
@@ -69,6 +69,6 @@ pub fn screen_to_world_pos(
     screen_pos: Vec2,
     camera_q: Query<(&Camera, &GlobalTransform), With<Camera2d>>,
 ) -> Vec2 {
-    let (camera, camera_transform) = camera_q.single();
+    let (camera, camera_transform) = camera_q.single().unwrap();
     camera.viewport_to_world_2d(camera_transform, screen_pos).unwrap()
 }

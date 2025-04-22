@@ -1,33 +1,36 @@
+#![allow(dead_code, unused)]
+
 pub mod camera;
 pub mod world;
 pub mod hotbar;
 pub mod prelude;
 pub mod machines;
 pub mod saves;
+pub mod screens;
+pub mod widget;
+
 use prelude::*;
 
 fn main() -> AppExit {
     App::new()
     .add_plugins((
-        DefaultPlugins,
-        // sprite::Material2dPlugin::<world::WorldMaterial>::default(),
-        // sprite::Material2dPlugin::<hotbar::MachineMaterial>::default(),
-    ))
-    .init_asset::<saves::GameConfig>()
-    .init_asset_loader::<saves::GameConfigLoader>()
-    .add_systems(Startup, (
-        camera::add,
-        world::load_mats_n_mesh,
-        world::spawn_world,
-        hotbar::spawn_hotbar.after(world::spawn_world),
-    ))
-    .add_systems(Update, (
-        camera::movement,
-        camera::zoom,
-        world::draw_world,
-        hotbar::change_selected,
-        hotbar::build_placeholder,
-        world::update_changes.after(hotbar::build_placeholder),
-    ))
+        DefaultPlugins
+        .set(WindowPlugin {
+            primary_window: Window {
+                title: "INITERSE".to_string(),
+                fit_canvas_to_parent: true,
+                resolution: window::WindowResolution::new(1280., 800.),
+                ..default()
+            }
+            .into(),
+            ..default()
+        }),
+        widget::button_interaction_plugin,
+        screens::plugin,
+    )).add_systems(Startup, camera::add)
     .run()
+}
+
+pub fn exit_app(_: Trigger<Pointer<Released>>, mut app_exit: EventWriter<AppExit>) {
+    app_exit.write(AppExit::Success);
 }

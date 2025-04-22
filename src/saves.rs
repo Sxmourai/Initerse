@@ -1,7 +1,7 @@
 use bevy::{
     asset::{io::Reader, AssetLoader, LoadContext},
     prelude::*,
-    reflect::TypePath, utils::HashMap,
+    reflect::TypePath,
 };
 use serde::Deserialize;
 use thiserror::Error;
@@ -17,7 +17,7 @@ pub struct GameConfig {
     save_title: String,
     fullscreen: bool,
 
-    key_bindings: HashMap<String, Action>,
+    key_bindings: std::collections::HashMap<String, Action>,
 
     difficulty_options: DifficultyOptions,
 }
