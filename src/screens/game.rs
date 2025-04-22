@@ -1,4 +1,4 @@
-use crate::*;
+use crate::{world::update_changes, *};
 
 use super::Screen;
 
@@ -13,7 +13,7 @@ pub fn plugin(app: &mut App) {
     .add_systems(Update, (
         camera::movement,
         camera::zoom,
-        world::draw_world,
+        world::mouse_interact.before(update_changes),
         hotbar::change_selected,
         hotbar::build_placeholder.after(hotbar::change_selected),
         world::update_changes.after(hotbar::build_placeholder),

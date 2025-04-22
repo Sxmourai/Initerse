@@ -1,7 +1,7 @@
 use strum::IntoEnumIterator as _;
 use window::PrimaryWindow;
 
-use crate::{camera::screen_to_world_pos, machines::MachineType, prelude::*, world::{Machine, MachineMaterialsHandles, World, TILE_HEIGHT, TILE_WIDTH}};
+use crate::{camera::{screen_to_cell_pos, screen_to_world_pos}, machines::MachineType, prelude::*, world::{machine_from_ty, Machine, MachineMaterialsHandles, World, TILE_HEIGHT, TILE_WIDTH}};
 
 
 
@@ -87,18 +87,12 @@ pub fn build_placeholder(
     match window_q.single() {
         Ok(w) => {
             if let Some(pos) = w.cursor_position() {
-                let mut pos = screen_to_world_pos(pos, camera_q);
-                pos.x += TILE_WIDTH/2.;
-                pos.y += TILE_HEIGHT/2.;
-                let tx = (pos.x / TILE_WIDTH).floor() as i32;
-                let ty = (pos.y / TILE_HEIGHT).floor() as i32;
-                pos.x = tx as f32 * TILE_WIDTH;
-                pos.y = ty as f32 * TILE_HEIGHT;
-                selected_machine.0.translation.x = pos.x;
-                selected_machine.0.translation.y = pos.y;
+                let t = screen_to_cell_pos(pos, camera_q);
+                selected_machine.0.translation.x = t.x as f32 * TILE_WIDTH;
+                selected_machine.0.translation.y = t.y as f32 * TILE_HEIGHT;
                 if let Some(inner) = selected_machine.1.inner {
                     if mouse.just_pressed(MouseButton::Left) {
-                        world.set_tower(IVec2::new(tx, ty), Machine::new_from_machine_type(inner));
+                        world.set_tower(t, machine_from_ty(inner));
                         mouse.clear_just_pressed(MouseButton::Left);
                     }
                 }
