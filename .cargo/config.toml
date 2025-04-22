@@ -1,0 +1,11 @@
+[target.x86_64-pc-windows-msvc]
+linker = "rust-lld.exe"
+# rustflags = [
+#   # (Nightly) Make the current crate share its generic instantiations
+#   "-Zshare-generics=y",
+# ]
+# [target.x86_64-unknown-linux-gnu]
+# rustflags = [
+#   # (Nightly) Make the current crate share its generic instantiations
+#   "-Zshare-generics=y",
+# ]

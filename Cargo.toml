@@ -1,0 +1,24 @@
+[package]
+name = "bevy_2d"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+log = { version = "*", features = [
+    "max_level_debug",
+    "release_max_level_warn",
+] }
+noise = "0.9.0"
+rand_xorshift = "0.4.0"
+strum = "0.27.1"
+strum_macros = "0.27.1"
+
+[dependencies.bevy]
+version = "0.15.3"
+features = ["dynamic_linking",]
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
