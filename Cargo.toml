@@ -10,8 +10,11 @@ log = { version = "*", features = [
 ] }
 noise = "0.9.0"
 rand_xorshift = "0.4.0"
+ron = "0.10.1"
+serde = "1.0.219"
 strum = "0.27.1"
 strum_macros = "0.27.1"
+thiserror = "2.0.12"
 
 [dependencies.bevy]
 version = "0.15.3"

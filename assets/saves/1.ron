@@ -1,0 +1,16 @@
+GameConfig(
+    window_size: (1280, 800),
+    save_title: "World 1",
+    fullscreen: false,
+
+    key_bindings: {
+        "W": Up,
+        "S": Down,
+        "A": Left,
+        "D": Right,
+    },
+
+    difficulty_options: (
+        level: 0
+    ),
+)

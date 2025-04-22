@@ -2,7 +2,7 @@ use noise::Perlin;
 use strum::{EnumProperty, IntoEnumIterator};
 use utils::hashbrown::HashMap;
 
-use crate::{machines::{self, MachineType}, prelude::*};
+use crate::{machines::{self, MachineType}, prelude::*, saves::GameConfig};
 
 pub const TILE_WIDTH: f32 = 32.0;
 pub const TILE_HEIGHT: f32 = 32.0;
@@ -13,16 +13,16 @@ pub const TILE_HEIGHT: f32 = 32.0;
 
 #[derive(Resource)]
 pub struct World {
-    pub perlin: Perlin,
     pub frame_diff: Vec<(IVec2, Machine)>,
     pub diff: HashMap<IVec2, Machine>,
+    pub config: Handle<GameConfig>
 }
 impl World {
-    pub fn generate(seed: u32) -> Self {
+    pub fn generate(config: Handle<GameConfig>) -> Self {
         Self {
-            perlin: Perlin::new(seed),
             diff: Default::default(),
             frame_diff: Vec::new(),
+            config,
         }
     }
     pub fn set_tower(&mut self, coords: IVec2, machine: Machine) -> Option<&Machine> {
@@ -30,7 +30,6 @@ impl World {
             return Some(tower)
         } else {
             self.frame_diff.push((coords, machine));
-            dbg!(coords);
         }
         None
     }
@@ -48,8 +47,6 @@ pub fn update_changes(
     mut cmd: Commands,
 ) {
     for (pos, machine) in &world.frame_diff {
-        dbg!(pos, machine);
-        
         cmd.spawn((
             MeshMaterial2d(machines.mats[machine.ty().as_index()].clone_weak()),
             Mesh2d(machines.cell_mesh.clone_weak()),
@@ -96,11 +93,11 @@ pub fn load_mats_n_mesh(
 
 pub fn spawn_world(
     mut cmd: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
+    mut asset_server: ResMut<AssetServer>,
 ) {
-    let seed = 0;
-    cmd.insert_resource(World::generate(seed));
+    cmd.insert_resource(World::generate(asset_server.load("saves/1.ron")));
 }
+
 #[derive(Debug)]
 pub struct Machine {
     pub _machine: Box<dyn _Machine>,
