@@ -1,7 +1,7 @@
 use strum::IntoEnumIterator as _;
 use window::PrimaryWindow;
 
-use crate::{camera::{screen_to_cell_pos, screen_to_world_pos}, machines::MachineType, prelude::*, world::{machine_from_ty, Machine, MachineMaterialsHandles, World, TILE_HEIGHT, TILE_WIDTH}};
+use crate::{camera::{screen_to_cell_pos, screen_to_world_pos}, machines::MachineType, prelude::*, screens::Screen, world::{machine_from_ty, Machine, MachineMaterialsHandles, World, TILE_HEIGHT, TILE_WIDTH}};
 
 
 
@@ -32,7 +32,7 @@ pub fn spawn_hotbar(
                 left: Val::Px(x), top: Val::Percent(90.),
                 ..Default::default()
             }, 
-            ImageNode::new(machines.imgs[i].clone_weak())
+            ImageNode::new(machines.imgs[i].clone_weak()), StateScoped(Screen::Game)
         ));
     }
 
@@ -41,7 +41,7 @@ pub fn spawn_hotbar(
         MeshMaterial2d(machines.mats[0].clone_weak()),
         Mesh2d(machines.cell_mesh.clone_weak()),
         Visibility::Hidden,
-        Transform::default(),
+        Transform::default(), StateScoped(Screen::Game)
     ));
 }
 

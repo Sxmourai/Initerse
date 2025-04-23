@@ -2,11 +2,7 @@ use noise::Perlin;
 use strum::{EnumProperty, IntoEnumIterator};
 
 use crate::{
-    camera::{screen_to_cell_pos, screen_to_world_pos},
-    machines::{self, MachineType},
-    prelude::*,
-    saves::GameConfig,
-    widget,
+    camera::{screen_to_cell_pos, screen_to_world_pos}, machines::{self, MachineType}, prelude::*, saves::GameConfig, screens::Screen, widget
 };
 
 pub const TILE_WIDTH: f32 = 32.0;
@@ -59,7 +55,7 @@ pub fn update_changes(
                 pos.y as f32 * TILE_HEIGHT,
                 1.,
             )),
-            Visibility::Visible,
+            Visibility::Visible, StateScoped(Screen::Game)
         ));
     }
     world.update_changes();
@@ -180,5 +176,5 @@ pub fn mouse_interact(
 pub fn show_inventory(mut cmd: Commands, cell_pos: IVec2, machine: &Machine) {
     cmd.spawn((widget::ui_root(machine.name()), children![(
         widget::label(machine.name()),
-    )]));
+    )], StateScoped(Screen::Game)));
 }

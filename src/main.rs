@@ -8,6 +8,7 @@ pub mod machines;
 pub mod saves;
 pub mod screens;
 pub mod widget;
+pub mod helpers;
 
 use prelude::*;
 

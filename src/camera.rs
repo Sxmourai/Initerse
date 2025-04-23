@@ -1,5 +1,8 @@
-use crate::{prelude::*, world::{TILE_HEIGHT, TILE_WIDTH}};
-
+use crate::{
+    prelude::*,
+    screens::game::PlayerAction,
+    world::{TILE_HEIGHT, TILE_WIDTH},
+};
 
 #[derive(Component)]
 pub struct PlayerCamera {
@@ -7,40 +10,49 @@ pub struct PlayerCamera {
     movement_accel: f32,
 }
 
-
-pub fn add(
-    mut commands: Commands,
-
-) {
-    commands.spawn((Camera2d, Transform::from_xyz(0., 0., 1.).looking_at(Vec3::ZERO, Vec3::Y), PlayerCamera {
-        movement_speed: Vec2::ZERO,
-        movement_accel: 2.0,
-    }));
+pub fn add(mut commands: Commands) {
+    let input_map = InputMap::new([
+        (PlayerAction::Up, KeyCode::KeyW),
+        (PlayerAction::Down, KeyCode::KeyS),
+        (PlayerAction::Right, KeyCode::KeyD),
+        (PlayerAction::Left, KeyCode::KeyA),
+    ]);
+    commands.spawn((
+        Camera2d,
+        Transform::from_xyz(0., 0., 1.).looking_at(Vec3::ZERO, Vec3::Y),
+        PlayerCamera {
+            movement_speed: Vec2::ZERO,
+            movement_accel: 5.0,
+        },
+        InputManagerBundle::with_map(input_map),
+    ));
 }
 
 pub fn movement(
-    mut camera: Query<(&mut Transform, &mut PlayerCamera)>,
-    inputs: Res<ButtonInput<KeyCode>>,
+    mut camera: Query<(
+        &ActionState<PlayerAction>,
+        &mut Transform,
+        &mut PlayerCamera,
+    )>,
 ) {
-    let (mut trans, mut cam) = camera.single_mut().unwrap();
-    if inputs.pressed(KeyCode::KeyW) {
+    let (actions, mut trans, mut cam) = camera.single_mut().unwrap();
+    if actions.pressed(&PlayerAction::Up) {
         cam.movement_speed.y += cam.movement_accel;
     }
-    if inputs.pressed(KeyCode::KeyS) {
+    if actions.pressed(&PlayerAction::Down) {
         cam.movement_speed.y -= cam.movement_accel;
     }
-    if inputs.pressed(KeyCode::KeyA) {
+    if actions.pressed(&PlayerAction::Left) {
         cam.movement_speed.x -= cam.movement_accel;
     }
-    if inputs.pressed(KeyCode::KeyD) {
+    if actions.pressed(&PlayerAction::Right) {
         cam.movement_speed.x += cam.movement_accel;
     }
-    cam.movement_speed = cam.movement_speed.clamp_length_max(cam.movement_accel*5.);
+    cam.movement_speed = cam.movement_speed.clamp_length_max(cam.movement_accel * 5.);
     trans.translation.x += cam.movement_speed.x;
     trans.translation.y += cam.movement_speed.y;
-    if !inputs.any_pressed([KeyCode::KeyW, KeyCode::KeyS, KeyCode::KeyA, KeyCode::KeyD]) {
-        cam.movement_speed *= 0.6;
-    }
+    // No movement
+    cam.movement_speed *= 0.6;
 }
 
 pub fn zoom(
@@ -50,7 +62,8 @@ pub fn zoom(
     use bevy::input::mouse::MouseScrollUnit;
     for ev in evr_scroll.read() {
         match ev.unit {
-            MouseScrollUnit::Line => { // ev.y between -1 and 1, so we can scale it
+            MouseScrollUnit::Line => {
+                // ev.y between -1 and 1, so we can scale it
                 let mut t = camera.single_mut().unwrap().0;
                 let scale = ev.y * -1.;
                 t.scale.x += scale;
@@ -70,7 +83,9 @@ pub fn screen_to_world_pos(
     camera_q: Query<(&Camera, &GlobalTransform), With<Camera2d>>,
 ) -> Vec2 {
     let (camera, camera_transform) = camera_q.single().unwrap();
-    camera.viewport_to_world_2d(camera_transform, screen_pos).unwrap()
+    camera
+        .viewport_to_world_2d(camera_transform, screen_pos)
+        .unwrap()
 }
 
 pub fn screen_to_cell_pos(
@@ -78,8 +93,8 @@ pub fn screen_to_cell_pos(
     camera_q: Query<(&Camera, &GlobalTransform), With<Camera2d>>,
 ) -> IVec2 {
     let mut wp = screen_to_world_pos(screen_pos, camera_q);
-    wp.x += TILE_WIDTH/2.;
-    wp.y += TILE_HEIGHT/2.;
+    wp.x += TILE_WIDTH / 2.;
+    wp.y += TILE_HEIGHT / 2.;
     let tx = (wp.x / TILE_WIDTH).floor() as i32;
     let ty = (wp.y / TILE_HEIGHT).floor() as i32;
     IVec2::new(tx, ty)
