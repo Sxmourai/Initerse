@@ -1,7 +1,6 @@
 use crate::{
     prelude::*,
     screens::game::PlayerAction,
-    world::{TILE_HEIGHT, TILE_WIDTH},
 };
 
 #[derive(Component)]
@@ -86,16 +85,4 @@ pub fn screen_to_world_pos(
     camera
         .viewport_to_world_2d(camera_transform, screen_pos)
         .unwrap()
-}
-
-pub fn screen_to_cell_pos(
-    screen_pos: Vec2,
-    camera_q: Query<(&Camera, &GlobalTransform), With<Camera2d>>,
-) -> IVec2 {
-    let mut wp = screen_to_world_pos(screen_pos, camera_q);
-    wp.x += TILE_WIDTH / 2.;
-    wp.y += TILE_HEIGHT / 2.;
-    let tx = (wp.x / TILE_WIDTH).floor() as i32;
-    let ty = (wp.y / TILE_HEIGHT).floor() as i32;
-    IVec2::new(tx, ty)
 }

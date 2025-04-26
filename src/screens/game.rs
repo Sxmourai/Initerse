@@ -1,6 +1,7 @@
 use bevy::input::common_conditions::input_just_pressed;
 
-use crate::{world::update_changes, *};
+use crate::*;
+use crate::game::*;
 
 use super::Screen;
 
@@ -9,6 +10,7 @@ pub fn plugin(app: &mut App) {
     .init_asset_loader::<saves::GameConfigLoader>()
     .add_plugins(InputManagerPlugin::<GameAction>::default())
     .add_plugins(InputManagerPlugin::<PlayerAction>::default())
+    .add_plugins(bevy_prototype_lyon::plugin::ShapePlugin)
     .add_systems(OnEnter(Screen::Game), (
         world::load_mats_n_mesh,
         spawn_guis,
@@ -18,10 +20,11 @@ pub fn plugin(app: &mut App) {
     .add_systems(Update, (
         camera::movement,
         camera::zoom,
-        world::mouse_interact.before(update_changes),
+        // world::mouse_interact.before(update_changes),
         hotbar::change_selected,
-        hotbar::build_placeholder.after(hotbar::change_selected),
         world::update_changes.after(hotbar::build_placeholder),
+        hotbar::build_placeholder,
+        world::update,
         show_options.run_if(input_just_pressed(KeyCode::Escape))
     ).run_if(in_state(Screen::Game)));
 } 

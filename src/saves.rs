@@ -62,3 +62,6 @@ impl AssetLoader for GameConfigLoader {
     }
 }
 
+// TODO: Move to https://github.com/TheBevyFlock/bevy_new_2d/blob/main/src/asset_tracking.rs
+// TODO: Use http://github.com/NiklasEi/bevy_common_assets
+

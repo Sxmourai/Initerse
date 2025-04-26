@@ -1,16 +1,14 @@
 #![allow(dead_code, unused)]
 
 pub mod camera;
-pub mod world;
-pub mod hotbar;
 pub mod prelude;
-pub mod machines;
 pub mod saves;
 pub mod screens;
 pub mod widget;
 pub mod helpers;
+pub mod game;
 
-use prelude::*;
+pub use prelude::*;
 
 fn main() -> AppExit {
     App::new()
@@ -26,9 +24,14 @@ fn main() -> AppExit {
             .into(),
             ..default()
         }),
-        widget::button_interaction_plugin,
         screens::plugin,
-    )).add_systems(Startup, camera::add)
+        
+        // External plugins
+        widget::button_interaction_plugin, // From bevy_new_2d, simple buttons
+        bevy_inspector_egui::bevy_egui::EguiPlugin { enable_multipass_for_primary_context: true }, // For bevy_inspector_egui
+        bevy_inspector_egui::quick::WorldInspectorPlugin::new(), // Bevy_inspector_egui, basic inspector
+    ))
+    .add_systems(Startup, camera::add)
     .run()
 }
 
