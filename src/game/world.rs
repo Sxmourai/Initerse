@@ -3,7 +3,7 @@ use strum::{EnumProperty, IntoEnumIterator};
 
 use crate::*;
 
-use super::{machines::{MachineCommon, M}, particles::ParticleComponent};
+use super::{machines::{MachineCommon, M}, particles::{ParticleComponent, Velocity}};
 
 
 #[derive(Resource)]
@@ -131,12 +131,13 @@ pub fn update(
     mut world: ResMut<World>,
     mut cmd: Commands,
     mut machines: Query<(&mut Sprite, &mut Visibility, &mut Transform, &StateScoped<Screen>, &mut M)>,
+    mut particles: Query<(&mut Sprite, &mut Visibility, &mut Transform, &StateScoped<Screen>, &mut Velocity), Without<M>>,
 ) {
     for (mut sprite, mut vis, mut transform,_state_scoped, mut m) in &mut machines {
-        m.update((&mut sprite,&mut vis,&mut transform));
+        m.update((&mut sprite,&mut vis,&mut transform), &mut cmd);
     }
-    for particle in &mut world.particles {
-        particle.update();
+    for mut p in &mut particles {
+        p.2.translation = (p.2.translation.xy()+p.4.0).extend(1.);
     }
 }
 

@@ -26,7 +26,8 @@ pub fn plugin(app: &mut App) {
         hotbar::build_placeholder,
         world::update,
         show_options.run_if(input_just_pressed(KeyCode::Escape))
-    ).run_if(in_state(Screen::Game)));
+    ).run_if(in_state(Screen::Game)))
+    ;
 } 
 
 

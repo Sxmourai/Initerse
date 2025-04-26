@@ -1,6 +1,10 @@
+use std::time::{Duration, Instant};
+
 use strum_macros::{self, EnumIter, EnumProperty};
 
 use crate::*;
+
+use super::particles::ParticleComponent;
 
 
 #[derive(EnumProperty, EnumIter, Debug, Clone, Copy, PartialEq)]
@@ -31,7 +35,7 @@ impl MachineType {
 pub type MachineCommonMut<'a> = (&'a mut Sprite, &'a mut Visibility, &'a mut Transform);
 
 pub trait MachineTrait: Sync + Send + std::fmt::Debug {
-    fn update(&mut self, com: MachineCommonMut<'_>) {
+    fn update(&mut self, com: MachineCommonMut<'_>, cmd: &mut Commands) {
         dbg!(self.name());
     }
     fn ty(&self) -> MachineType;
@@ -39,7 +43,7 @@ pub trait MachineTrait: Sync + Send + std::fmt::Debug {
 }
 pub fn machine_box_from_ty(ty: MachineType) -> Box<dyn MachineTrait> {
     match ty {
-        MachineType::StringCreator => Box::new(StringCreator {}),
+        MachineType::StringCreator => Box::new(StringCreator::new()),
         MachineType::Electron => Box::new(Electron {}),
         MachineType::Energy => Box::new(Energy {}),
         MachineType::Empty => todo!(),
@@ -49,17 +53,31 @@ pub fn machine_box_from_ty(ty: MachineType) -> Box<dyn MachineTrait> {
 
 
 #[derive(Debug)]
-pub struct StringCreator {}
+pub struct StringCreator {
+    last_creation: Instant
+}
+// impl_machine_trait!(StringCreator);
+impl StringCreator {
+    pub fn new() -> Self {
+        Self {
+            last_creation: Instant::now(),
+        }
+    }
+}
 impl MachineTrait for StringCreator {
-
     fn ty(&self) -> MachineType {
         MachineType::StringCreator
     }
-    
-    fn name(&self) -> String {
-        "String creator".to_string()
+    fn update(&mut self, com: MachineCommonMut<'_>, cmd: &mut Commands) {
+        if self.last_creation.elapsed()>Duration::from_secs(1) {
+            let mut p = ParticleComponent::new(com.2.translation.xy(), Sprite::from_color(Color::linear_rgb(1., 0., 0.), Vec2::splat(20.)));
+            p.vel.0.x = 1.;
+            cmd.spawn((p, StateScoped(Screen::Game)));
+            self.last_creation = Instant::now();
+        }
     }
 }
+
 
 #[derive(Debug)]
 pub struct Electron {}
@@ -79,6 +97,24 @@ impl MachineTrait for Energy {
     }
 }
 
+// #[macro_export]
+// macro_rules! impl_machine_trait {
+//     ($struct_name: tt) => {
+            
+//     };
+//     ($struct_name: tt, $update_fn: expr) => {
+//         impl MachineTrait for $struct_name {
+
+//             fn ty(&self) -> MachineType {
+//                 MachineType::$struct_name
+//             }
+//             fn update(&mut self, com: MachineCommonMut<'_>) {
+//                 let f: &dyn FnOnce(MachineCommonMut<'_>) -> () = &$update_fn;
+//                 $update_fn(com)
+//             }
+//         }
+//     };
+// }
 
 #[derive(Debug, Bundle)]
 pub struct Machine {

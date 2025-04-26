@@ -1,19 +1,25 @@
 use crate::*;
 
 
-#[derive(Component)]
+#[derive(Bundle)]
 pub struct ParticleComponent {
-    vel: Vec2,
-    transform: Transform,
-    texture: Sprite,
-    vis: Visibility,
+    pub vel: Velocity,
+    pub transform: Transform,
+    pub sprite: Sprite,
+    pub vis: Visibility,
 }
 impl ParticleComponent {
     pub(crate) fn update(&mut self) {
-        let v = self.vel.clone();
-        self.transform.translation = (self.pos()+v).extend(1.);
+        self.transform.translation = (self.pos()+self.vel.0).extend(1.);
     }
     pub fn pos(&self) -> Vec2 {
         self.transform.translation.xy()
     }
+    
+    pub(crate) fn new(pos: Vec2, sprite: Sprite) -> Self {
+        Self { vel: Velocity(Vec2::ZERO), transform: Transform::from_translation(pos.extend(1.)), sprite, vis: Visibility::Visible }
+    }
 }
+
+#[derive(Component, Clone, Copy, PartialEq)]
+pub struct Velocity(pub Vec2);
