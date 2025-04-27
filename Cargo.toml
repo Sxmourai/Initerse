@@ -23,6 +23,7 @@ bevy_prototype_lyon = {git = "https://github.com/rparrett/bevy_prototype_lyon.gi
 tiny_bail = "0.4.3"
 # Bevy editor for debugging
 bevy-inspector-egui = "0.31.0"
+bevy_vello = {path = "bevy_vello"}
 # https://github.com/NiklasEi/bevy_asset_loader
 
 
