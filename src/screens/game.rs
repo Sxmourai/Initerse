@@ -14,7 +14,6 @@ pub fn plugin(app: &mut App) {
     .add_systems(OnEnter(Screen::Game), (
         world::load_mats_n_mesh,
         spawn_guis,
-        world::spawn_world,
         hotbar::spawn_hotbar.after((world::load_mats_n_mesh)),
     ))
     .add_systems(Update, (
@@ -22,9 +21,10 @@ pub fn plugin(app: &mut App) {
         camera::zoom,
         // world::mouse_interact.before(update_changes),
         hotbar::change_selected,
-        world::update_changes.after(hotbar::build_placeholder),
+        // world::update_changes.after(hotbar::build_placeholder),
         hotbar::build_placeholder,
         world::update,
+        machines::string_creator_updates,
         show_options.run_if(input_just_pressed(KeyCode::Escape))
     ).run_if(in_state(Screen::Game)))
     ;

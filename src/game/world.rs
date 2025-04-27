@@ -3,65 +3,8 @@ use strum::{EnumProperty, IntoEnumIterator};
 
 use crate::*;
 
-use super::{machines::{MachineCommon, M}, particles::{ParticleComponent, Velocity}};
+use super::{machines::{MachineCommon, MachineTag}, particles::{ParticleComponent, Velocity}};
 
-
-#[derive(Resource)]
-pub struct World {
-    // pub frame_machines: Vec<(Vec2, Machine)>,
-    pub machines: Vec<Entity>,
-    pub particles: Vec<ParticleComponent>,
-    pub config: Handle<GameConfig>,
-}
-impl World {
-    pub fn generate(config: Handle<GameConfig>) -> Self {
-        Self {
-            config,
-            // frame_machines: Default::default(),
-            machines: Default::default(),
-            particles: Default::default(),
-        }
-    }
-    pub fn set_machine(&mut self, coords: Vec2, machine: Entity) {
-        // if let Some(machine) = self.machines.get(&coords) {
-        //     return Some(machine);
-        // } else {
-        //     self.frame_machines.push((coords, machine));
-        // }
-        // None
-        self.machines.push(machine)
-        // self.frame_machines.push((coords, machine))
-    }
-    pub fn get_machine(&self, coords: &Vec2) -> Option<&Machine> {
-        todo!()
-        // self.machines.get(coords)
-    }
-    pub fn update_changes(&mut self) {
-        todo!()
-        // self.machines
-        //     .extend(std::mem::take(&mut self.frame_machines).into_iter());
-    }
-}
-
-pub fn update_changes(
-    mut world: ResMut<World>,
-    machines: Res<MachineMaterialsHandles>,
-    mut cmd: Commands,
-) {
-    // for (pos, machine) in &world.frame_machines {
-    //     cmd.spawn((
-    //         Sprite::from_image(machines.imgs[machine.ty().as_index()].clone_weak()),
-    //         // Mesh2d(machines.cell_mesh.clone_weak()),
-    //         Transform::from_translation(Vec3::new(
-    //             pos.x,
-    //             pos.y,
-    //             1.,
-    //         )),
-    //         Visibility::Visible, StateScoped(Screen::Game)
-    //     ));
-    // }
-    // world.update_changes();
-}
 
 #[derive(Resource)]
 pub struct MachineMaterialsHandles {
@@ -70,7 +13,6 @@ pub struct MachineMaterialsHandles {
     // pub cell_mesh: Handle<Mesh>,
 }
 
-pub type CellMesh = Mesh2d;
 
 pub fn load_mats_n_mesh(
     mut cmd: Commands,
@@ -97,9 +39,6 @@ pub fn load_mats_n_mesh(
     });
 }
 
-pub fn spawn_world(mut cmd: Commands, mut asset_server: ResMut<AssetServer>) {
-    cmd.insert_resource(World::generate(asset_server.load("saves/1.ron")));
-}
 
 // pub fn mouse_interact(
 //     window_q: Query<&Window>,
@@ -121,22 +60,22 @@ pub fn spawn_world(mut cmd: Commands, mut asset_server: ResMut<AssetServer>) {
 //     }
 // }
 
-pub fn show_inventory(mut cmd: Commands, cell_pos: Vec2, machine: &Machine) {
-    cmd.spawn((widget::ui_root(machine.name()), children![(
-        widget::label(machine.name()),
-    )], StateScoped(Screen::Game)));
-}
+// pub fn show_inventory(mut cmd: Commands, cell_pos: Vec2, machine: &Machine) {
+//     cmd.spawn((widget::ui_root(machine.name()), children![(
+//         widget::label(machine.name()),
+//     )], StateScoped(Screen::Game)));
+// }
 
 pub fn update(
-    mut world: ResMut<World>,
+    // mut world: ResMut<World>,
     mut cmd: Commands,
-    mut machines: Query<(&mut Sprite, &mut Visibility, &mut Transform, &StateScoped<Screen>, &mut M)>,
-    mut particles: Query<(&mut Sprite, &mut Visibility, &mut Transform, &StateScoped<Screen>, &mut Velocity), Without<M>>,
+    mut machines: Query<(&mut Sprite, &mut Visibility, &mut Transform, &StateScoped<Screen>, &mut MachineTag)>,
+    mut particles: Query<(&mut Sprite, &mut Visibility, &mut Transform, &StateScoped<Screen>, &mut Velocity), Without<MachineTag>>,
 ) {
-    for (mut sprite, mut vis, mut transform,_state_scoped, mut m) in &mut machines {
-        m.update((&mut sprite,&mut vis,&mut transform), &mut cmd);
+    for (mut sprite, mut vis, mut transform,_state_scoped, mut m) in &mut machines { // Shared machine behaviour
+        
     }
-    for mut p in &mut particles {
+    for mut p in &mut particles { // Shared particle behaviour
         p.2.translation = (p.2.translation.xy()+p.4.0).extend(1.);
     }
 }

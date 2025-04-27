@@ -1,5 +1,6 @@
-use std::time::{Duration, Instant};
+use std::{ptr::NonNull, time::{Duration, Instant}};
 
+use bevy::{ecs::{bundle::{BundleEffect, DynamicBundle, NoBundleEffect}, component::Mutable}, ptr::OwningPtr};
 use strum_macros::{self, EnumIter, EnumProperty};
 
 use crate::*;
@@ -30,29 +31,64 @@ impl MachineType {
     }
 }
 
-
-
 pub type MachineCommonMut<'a> = (&'a mut Sprite, &'a mut Visibility, &'a mut Transform);
 
-pub trait MachineTrait: Sync + Send + std::fmt::Debug {
-    fn update(&mut self, com: MachineCommonMut<'_>, cmd: &mut Commands) {
-        dbg!(self.name());
-    }
-    fn ty(&self) -> MachineType;
-    fn name(&self) -> String {self.ty().name().to_string()}
-}
-pub fn machine_box_from_ty(ty: MachineType) -> Box<dyn MachineTrait> {
-    match ty {
-        MachineType::StringCreator => Box::new(StringCreator::new()),
-        MachineType::Electron => Box::new(Electron {}),
-        MachineType::Energy => Box::new(Energy {}),
-        MachineType::Empty => todo!(),
-    }
-}
+// #[derive(Debug)]
+// pub enum MachineTrait {
+//     StringCreator(StringCreator),
+//     Electron(Electron),
+//     Energy(Energy),
+//     Empty,
+// }
+// impl ecs::bundle::DynamicBundle for MachineTrait {
+//     type Effect = ();
+
+//     fn get_components(self, func: &mut impl FnMut(ecs::component::StorageType, ptr::OwningPtr<'_>)) -> Self::Effect {
+//         let non_null_machine_ptr = match self {
+//             MachineTrait::StringCreator(mut string_creator) => NonNull::new(&mut string_creator as *mut StringCreator as *mut u8),
+//             MachineTrait::Electron(mut electron) => NonNull::new(&mut electron as *mut Electron as *mut u8),
+//             MachineTrait::Energy(mut energy) => NonNull::new(&mut energy as *mut Energy as *mut u8),
+//             MachineTrait::Empty => todo!(),
+//         }.unwrap();
+//         func(ecs::component::StorageType::Table, unsafe { OwningPtr::new(non_null_machine_ptr) })
+//     }
+// }
+// impl MachineTrait {
+//     pub fn update(&mut self, com: MachineCommonMut<'_>, cmd: &mut Commands) {
+//         // dbg!(self.name());
+//     }
+//     pub fn ty(&self) -> MachineType {
+//         match self {
+//             MachineTrait::StringCreator(string_creator) => MachineType::StringCreator,
+//             MachineTrait::Electron(electron) => MachineType::Electron,
+//             MachineTrait::Energy(energy) => MachineType::Energy,
+//             MachineTrait::Empty => MachineType::Empty,
+//         }
+//     }
+//     pub fn name(&self) -> String {self.ty().name().to_string()}
+//     // pub fn inner_component(self) -> impl Bundle {
+//     // }
+// }
+
+// pub trait MachineTrait: Sync + Send + std::fmt::Debug + Component {
+//     fn update(&mut self, com: MachineCommonMut<'_>, cmd: &mut Commands) {
+//         dbg!(self.name());
+//     }
+//     fn ty(&self) -> MachineType;
+//     fn name(&self) -> String {self.ty().name().to_string()}
+// }
+// pub fn machine_box_from_ty(ty: MachineType) -> MachineTrait {
+//     match ty {
+//         MachineType::StringCreator => MachineTrait::StringCreator(StringCreator::new()),
+//         MachineType::Electron => MachineTrait::Electron(Electron {  }),
+//         MachineType::Energy => MachineTrait::Energy(Energy {  }),
+//         MachineType::Empty => todo!(),
+//     }
+// }
 
 
 
-#[derive(Debug)]
+#[derive(Debug, Component)]
 pub struct StringCreator {
     last_creation: Instant
 }
@@ -64,38 +100,13 @@ impl StringCreator {
         }
     }
 }
-impl MachineTrait for StringCreator {
-    fn ty(&self) -> MachineType {
-        MachineType::StringCreator
-    }
-    fn update(&mut self, com: MachineCommonMut<'_>, cmd: &mut Commands) {
-        if self.last_creation.elapsed()>Duration::from_secs(1) {
-            let mut p = ParticleComponent::new(com.2.translation.xy(), Sprite::from_color(Color::linear_rgb(1., 0., 0.), Vec2::splat(20.)));
-            p.vel.0.x = 1.;
-            cmd.spawn((p, StateScoped(Screen::Game)));
-            self.last_creation = Instant::now();
-        }
-    }
-}
 
 
-#[derive(Debug)]
+#[derive(Debug, Component)]
 pub struct Electron {}
-impl MachineTrait for Electron {
 
-    fn ty(&self) -> MachineType {
-        MachineType::Electron
-    }
-}
-
-#[derive(Debug)]
+#[derive(Debug, Component)]
 pub struct Energy {}
-impl MachineTrait for Energy {
-
-    fn ty(&self) -> MachineType {
-        MachineType::Energy
-    }
-}
 
 // #[macro_export]
 // macro_rules! impl_machine_trait {
@@ -116,55 +127,59 @@ impl MachineTrait for Energy {
 //     };
 // }
 
-#[derive(Debug, Bundle)]
-pub struct Machine {
-    pub com: MachineCommon,
-    pub machine: M,
-}
+// #[derive(Debug)]
+// pub struct Machine {
+//     pub com: MachineCommon,
+//     pub machine: MachineTrait,
+// }
 
-impl Machine {
-    pub fn new(sprite: Sprite, pos: Vec2, machine: Box<dyn MachineTrait>) -> Self {
-        Self {
-            com: MachineCommon { sprite, vis: Visibility::Visible, transform: Transform::from_translation(pos.extend(1.)), _state_scoped: StateScoped(Screen::Game), },
-            machine: M(machine),
-        }
-    }
-    pub fn pos(&self) -> Vec2 {
-        self.com.transform.translation.xy()
-    }
-    /// To be able to create invisible machines easily: 
-    /// ```
-    /// let machine = MachineComponent::new().invisible();
-    /// ```
-    pub fn invisible(mut self) -> Self {
-        self.com.vis = Visibility::Hidden;
-        self
-    }
+// impl Machine {
+//     pub fn new(sprite: Sprite, pos: Vec2, machine: MachineTrait) -> Self {
+//         Self {
+//             com: MachineCommon { sprite, vis: Visibility::Visible, transform: Transform::from_translation(pos.extend(1.)), _state_scoped: StateScoped(Screen::Game), },
+//             machine,
+//         }
+//     }
+//     pub fn pos(&self) -> Vec2 {
+//         self.com.transform.translation.xy()
+//     }
+//     /// To be able to create invisible machines easily: 
+//     /// ```
+//     /// let machine = MachineComponent::new().invisible();
+//     /// ```
+//     pub fn invisible(mut self) -> Self {
+//         self.com.vis = Visibility::Hidden;
+//         self
+//     }
 
-    // pub fn update(&mut self) {
-    //     self.machine.update(&mut self.com);
-    // }
-}
+//     // pub fn as_bundle(self) -> impl Bundle {
+//     //     (self.com, )
+//     // }
 
-impl std::ops::Deref for Machine {
-    type Target = Box<dyn MachineTrait>;
+//     // pub fn update(&mut self) {
+//     //     self.machine.update(&mut self.com);
+//     // }
+// }
 
-    fn deref(&self) -> &Self::Target {
-        &self.machine
-    }
-}
-impl std::ops::DerefMut for Machine {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.machine
-    }
-}
+// impl std::ops::Deref for Machine {
+//     type Target = MachineTrait;
+
+//     fn deref(&self) -> &Self::Target {
+//         &self.machine
+//     }
+// }
+// impl std::ops::DerefMut for Machine {
+//     fn deref_mut(&mut self) -> &mut Self::Target {
+//         &mut self.machine
+//     }
+// }
 
 #[derive(Bundle)]
 pub struct MachineCommon {
     pub sprite: Sprite,
     pub vis: Visibility,
     pub transform: Transform,
-    _state_scoped: StateScoped<Screen>,
+    pub _state_scoped: StateScoped<Screen>,
 }
 impl std::fmt::Debug for MachineCommon {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -172,30 +187,33 @@ impl std::fmt::Debug for MachineCommon {
     }
 }
 
-pub fn spawn_machine(
-    mats: Res<MachineMaterialsHandles>,
-    ty: MachineType,
-    world_pos: Vec2,
-) -> Machine {
-    Machine::new(
-        Sprite::from_image(mats.imgs[ty.as_index()].clone_weak()),
-        world_pos, machine_box_from_ty(ty)
-    )
-}
+// pub fn spawn_machine(
+//     mats: Res<MachineMaterialsHandles>,
+//     ty: MachineType,
+//     world_pos: Vec2,
+// ) -> Machine {
+//     Machine::new(
+//         Sprite::from_image(mats.imgs[ty.as_index()].clone_weak()),
+//         world_pos, machine_box_from_ty(ty)
+//     )
+// }
 
 
-/// Small wrapper around box to implement Component
 #[derive(Component, Debug)]
-pub struct M(pub Box<dyn MachineTrait>);
-impl std::ops::Deref for M {
-    type Target = Box<dyn MachineTrait>;
+pub struct MachineTag;
 
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-impl std::ops::DerefMut for M{
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
+
+pub fn string_creator_updates(
+    mut cmd: Commands,
+    string_creators: Query<(&mut StringCreator, &Transform, )>,
+) {
+    for (mut s, trans) in string_creators {
+        if s.last_creation.elapsed()>Duration::from_secs(1) {
+            let mut p = ParticleComponent::new(trans.translation.xy(), Sprite::from_color(Color::linear_rgb(1., 0., 0.), Vec2::splat(20.)));
+            p.vel.0.x = 1.;
+            cmd.spawn((p, StateScoped(Screen::Game)));
+            s.last_creation = Instant::now();
+        }
+
     }
 }

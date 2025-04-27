@@ -7,7 +7,7 @@ use window::PrimaryWindow;
 
 use crate::{camera::screen_to_world_pos, *};
 
-use super::{machines::spawn_machine, world::MachineMaterialsHandles};
+use super::{machines::MachineCommon, world::MachineMaterialsHandles};
 
 #[derive(Component, Debug)]
 pub struct Slot {
@@ -89,7 +89,7 @@ pub fn build_placeholder(
     window_q: Query<&Window>,
     mut mouse: ResMut<ButtonInput<MouseButton>>,
     mut kb: ResMut<ButtonInput<KeyCode>>,
-    mut world: ResMut<game::world::World>,
+    // mut world: ResMut<game::world::World>,
     mats: Res<MachineMaterialsHandles>,
     camera_q: Query<(&Camera, &GlobalTransform), With<Camera2d>>,
     mut double_click_timer: Local<InstantDefaultNow>,
@@ -108,8 +108,20 @@ pub fn build_placeholder(
         redraw_editing_arrow(world_pos, &mut building_arrow, &mut building_arrow_q, &mut mouse, &mut kb, &mut cmd, double_click_timer);
         if mouse.just_pressed(MouseButton::Left) {
             if let Some(ty) = selected_machine.1.inner {
-                let machine = spawn_machine(mats, ty, world_pos);
-                world.set_machine(world_pos, cmd.spawn((machine)).id());
+                let machine = MachineCommon {
+                    sprite: Sprite::from_image(mats.imgs[ty.as_index()].clone_weak()),
+                    vis: Visibility::Visible,
+                    transform: Transform::from_translation(world_pos.extend(1.)),
+                    _state_scoped: StateScoped(Screen::Game),
+                };
+                let mut e = cmd.spawn((machine, MachineTag));
+                match ty {
+                    MachineType::StringCreator => e.insert(game::machines::StringCreator::new()),
+                    MachineType::Electron => e.insert(game::machines::Electron {  }),
+                    MachineType::Energy => e.insert(game::machines::Energy {  }),
+                    MachineType::Empty => todo!(),
+                };
+                // world.set_machine(world_pos, e.id());
                 mouse.clear_just_pressed(MouseButton::Left);
             }
         }
