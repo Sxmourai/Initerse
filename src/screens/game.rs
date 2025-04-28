@@ -15,6 +15,7 @@ pub fn plugin(app: &mut App) {
         world::cache_images,
         spawn_guis,
         hotbar::spawn_hotbar.after((world::cache_images)),
+        particles::enemy_particle_random_motion_setup
     ))
     .add_systems(Update, (
         camera::movement,
@@ -26,6 +27,7 @@ pub fn plugin(app: &mut App) {
         world::update,
         machines::string_creator_updates,
         machines::electron_updates,
+        particles::enemy_particle_random_motion,
         show_options.run_if(input_just_pressed(KeyCode::Escape))
     ).run_if(in_state(Screen::Game)))
     ;

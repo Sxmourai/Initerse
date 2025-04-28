@@ -34,3 +34,15 @@ After some while you will be able to:
 - Create AI, genetically modify life, expand to multiple dimensions, change universes and physical laws...
 
 See more in "docs/", with [Buildings](docs/Buildings.md) and [Planets](docs/Planets.md)
+
+
+I'm making a 2d factory/tower defense game in space (with Bevy ofc), based on physics. Here's a part of the lore:
+
+The world has been destroyed by antimatter monsters ! Fortunately, a little miniaturised robot, smaller than Planck length has survived (it's between antimatter particles).
+
+You first start with a `little matter generator`, which transforms antimatter pellets to useful materials ! The more antimatter you get, the more space you make around your base, but caution ! After a while antimatter monsters will see this anomaly, and as you may know: $E=mc²$, so antimatter + matter = big explosion !
+
+Use strange weapons to defend against pesky anti-drones, collect some crazy resources from antimatter bases, conquer multiple universes, and (maybe?) find the root of the Cataclysm !
+
+If you want to check more (or read more about the story): https://github.com/Sxmourai/Initerse
+Currently the game isn't at all playable, but I'm searching for partners to build the game, my DM's are open ! 

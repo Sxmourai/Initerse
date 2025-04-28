@@ -3,7 +3,7 @@ use strum::{EnumProperty, IntoEnumIterator};
 
 use crate::*;
 
-use super::{machines::{MachineCommon, MachineTag}, particles::{ParticleComponent, Velocity}};
+use super::{machines::{MachineCommon, MachineTag}, particles::{Velocity}};
 
 
 #[derive(Resource)]
@@ -69,7 +69,7 @@ pub fn update(
     // mut world: ResMut<World>,
     mut cmd: Commands,
     mut machines: Query<(&mut Sprite, &mut Visibility, &mut Transform, &StateScoped<Screen>, &mut MachineTag)>,
-    mut particles: Query<(&mut Sprite, &mut Visibility, &mut Transform, &StateScoped<Screen>, &mut Velocity), Without<MachineTag>>,
+    mut particles: Query<(&mut Sprite, &mut Visibility, &mut Transform, &StateScoped<Screen>, &mut Velocity), (With<game::particles::ParticleTag>, Without<MachineTag>)>,
 ) {
     for (mut sprite, mut vis, mut transform,_state_scoped, mut m) in &mut machines { // Shared machine behaviour
         

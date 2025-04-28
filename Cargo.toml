@@ -8,8 +8,7 @@ log = { version = "*", features = [
     "max_level_debug",
     "release_max_level_warn",
 ] }
-noise = "0.9.0"
-rand_xorshift = "0.4.0"
+noise = {version="0.9.0", features=["std"]}
 # Assets configuration
 ron = "0.10.1"
 serde = "1.0.219"
@@ -18,12 +17,13 @@ strum = "0.27.1"
 strum_macros = "0.27.1"
 thiserror = "2.0.12"
 leafwing-input-manager = {git = "https://github.com/Leafwing-Studios/leafwing-input-manager.git"}
-bevy_prototype_lyon = {git = "https://github.com/rparrett/bevy_prototype_lyon.git", branch = "fix-dynamic-examples"} # OR https://github.com/james-j-obrien/bevy_vector_shapes.git
+bevy_prototype_lyon = {path = "bevy_prototype_lyon"} # OR https://github.com/james-j-obrien/bevy_vector_shapes.git
 # Easy error handling
 tiny_bail = "0.4.3"
 # Bevy editor for debugging
 bevy-inspector-egui = "0.31.0"
 bevy_asset_loader = {git="https://github.com/NiklasEi/bevy_asset_loader.git", branch="bevy_main", features = ["standard_dynamic_assets", "2d"]} # Bevy 0.16.0
+rand = "0.9.1"
 # bevy_vello = {path = "bevy_vello", features = ["svg"]}
 # https://github.com/NiklasEi/bevy_asset_loader
 

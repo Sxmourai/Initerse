@@ -14,7 +14,7 @@ use strum_macros::{self, EnumIter, EnumProperty};
 
 use crate::*;
 
-use super::particles::{ParticleComponent, ParticleTag};
+use super::particles::{particle_bundle, ParticleTag};
 
 #[derive(EnumProperty, EnumIter, Debug, Clone, Copy, PartialEq)]
 pub enum MachineType {
@@ -217,12 +217,9 @@ pub fn string_creator_updates(
 ) {
     for (mut s, trans) in string_creators {
         if s.last_creation.elapsed() > Duration::from_secs(1) {
-            let mut p = ParticleComponent::new(
-                trans.translation.xy(),
-                get_image(&assets, "proton.png").unwrap().to_sprite(),
-            );
-            p.vel.0.x = 1.;
-            cmd.spawn((p, StateScoped(Screen::Game)));
+            let mut p = particle_bundle(trans.translation.xy(), Vec2::ONE, get_image(&assets, "proton.png").unwrap().to_sprite());
+            p.0.0.x = 1.; // Velocity
+            cmd.spawn(p);
             s.last_creation = Instant::now();
         }
     }

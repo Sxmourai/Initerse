@@ -49,3 +49,7 @@ fn cleanup_system<T: Component>(mut commands: Commands, q: Query<Entity, With<T>
 - https://github.com/bevyengine/bevy/blob/main/docs/profiling.md
 - Make some shaders: https://github.com/alphastrata/shadplay/
 - Stop loading all images inside "images" folder, use a typed definition with samplers & all
+
+# Random ideas
+
+Put 2 machines next to each other: buff/nerf => overclocker, ...
