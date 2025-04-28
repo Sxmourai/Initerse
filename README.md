@@ -1,6 +1,7 @@
 # Introduction
 
 This game is a 2d factory/tower defense game in space, based on physics. 
+(Disclaimer: I've thought a lot about the story but currently the game doesn't have a lot of features (placing buildings, drawing some stuff but that's it))
 
 ## Inspiration
 
