@@ -1,6 +1,28 @@
-# TODO
+# Main ideas
 
-- Following [Bevy's best practices](https://github.com/tbillington/bevy_best_practices?tab=readme-ov-file):
+- Have a good storyline, that will improve as the development of the game goes on
+- Think about the functionnalities, the experience, building, main goal, graphics
+    - Machines: Different sizes (start: planck length, end game: machines that operate at planet scale, or bigger, multiple universes)
+
+## Coding
+- 
+- Quickly make assets for machines & all, polishing later
+- Quickly make ui, for selecting map, multiplayer, game settings ...
+
+- Make the game multiplayer
+
+### Optimisations
+Some optimisations that we thought of during dev time
+*Probably don't need this now because I don't want it to be tile-based anymore:*
+Using some sort of Sparse Quadtree for storing the map, and maybe also an array with all machines.
+
+Try to get the average production of a part of the factory, and stops updating the part when player far away, then get last updated time, and multiply by average production
+
+- Polish assets
+
+# Bevy specific
+
+- Follow [Bevy's best practices](https://github.com/tbillington/bevy_best_practices?tab=readme-ov-file):
     - All systems needs to be bounded by run conditions on State and SystemSet
     - Co-locate system registration for the same State
     - use Events and learn more about them
@@ -27,4 +49,3 @@ fn cleanup_system<T: Component>(mut commands: Commands, q: Query<Entity, With<T>
 - https://github.com/bevyengine/bevy/blob/main/docs/profiling.md
 - Make some shaders: https://github.com/alphastrata/shadplay/
 - Stop loading all images inside "images" folder, use a typed definition with samplers & all
-

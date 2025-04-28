@@ -46,7 +46,7 @@ pub fn spawn_hotbar(mut cmd: Commands, assets: Res<GameAssets>) {
 
     let b = BuildingArrow { points: None };
     cmd.spawn((
-        arrow(&[Vec2::ZERO; 2], BLACK, 10.),
+        arrow(&[Vec2::ZERO; 2], BLACK, 10.),    
         ForceArrow,
         EditingForceArrow,
         Transform::from_translation(Vec3::new(0., 0., 1.)),
