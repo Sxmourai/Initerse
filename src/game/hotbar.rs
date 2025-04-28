@@ -7,7 +7,7 @@ use window::PrimaryWindow;
 
 use crate::{camera::screen_to_world_pos, *};
 
-use super::{machines::MachineCommon, world::MachineMaterialsHandles};
+use super::{machines::MachineCommon};
 
 #[derive(Component, Debug)]
 pub struct Slot {
@@ -18,7 +18,7 @@ pub struct SelectedMachine {
     pub inner: Option<MachineType>,
 }
 
-pub fn spawn_hotbar(mut cmd: Commands, machines: Res<MachineMaterialsHandles>) {
+pub fn spawn_hotbar(mut cmd: Commands, assets: Res<GameAssets>) {
     for (i, ty) in MachineType::iter().enumerate() {
         let x = i as f32 * 100. + 200.;
         cmd.spawn((
@@ -31,14 +31,14 @@ pub fn spawn_hotbar(mut cmd: Commands, machines: Res<MachineMaterialsHandles>) {
                 top: Val::Percent(90.),
                 ..Default::default()
             },
-            ImageNode::new(machines.imgs[i].clone_weak()),
+            ImageNode::new(get_machine_image(&assets, ty)),
             StateScoped(Screen::Game),
         ));
     }
 
     cmd.spawn((
         SelectedMachine { inner: None },
-        Sprite::from_image(machines.imgs[0].clone_weak()),
+        Sprite::from_color(Color::linear_rgb(1., 1., 1.), Vec2::splat(64.)),
         Visibility::Hidden,
         Transform::default(),
         StateScoped(Screen::Game),
@@ -55,10 +55,11 @@ pub fn spawn_hotbar(mut cmd: Commands, machines: Res<MachineMaterialsHandles>) {
     cmd.insert_resource(b);
 }
 
+
 pub fn change_selected(
     slots: Query<(&Interaction, &Slot), (Changed<Interaction>, With<Button>)>,
     mut selected_machine: Query<(&mut SelectedMachine, &mut Visibility, &mut Sprite)>,
-    machines: Res<MachineMaterialsHandles>,
+    assets: Res<GameAssets>,
     mut mouse: ResMut<ButtonInput<MouseButton>>,
     keys: Res<ButtonInput<KeyCode>>,
 ) {
@@ -68,7 +69,7 @@ pub fn change_selected(
                 let (mut mac, mut vis, mut material) = selected_machine.single_mut().unwrap();
                 mac.inner.replace(slot.inner.clone());
                 *vis = Visibility::Visible;
-                material.image = machines.imgs[slot.inner.as_index()].clone_weak();
+                material.image = get_machine_image(&assets, slot.inner);
                 mouse.clear_just_pressed(MouseButton::Left);
             }
             _ => {}
@@ -90,7 +91,7 @@ pub fn build_placeholder(
     mut mouse: ResMut<ButtonInput<MouseButton>>,
     mut kb: ResMut<ButtonInput<KeyCode>>,
     // mut world: ResMut<game::world::World>,
-    mats: Res<MachineMaterialsHandles>,
+    assets: Res<GameAssets>,
     camera_q: Query<(&Camera, &GlobalTransform), With<Camera2d>>,
     mut double_click_timer: Local<InstantDefaultNow>,
     mut building_arrow: ResMut<BuildingArrow>,
@@ -109,7 +110,7 @@ pub fn build_placeholder(
         if mouse.just_pressed(MouseButton::Left) {
             if let Some(ty) = selected_machine.1.inner {
                 let machine = MachineCommon {
-                    sprite: Sprite::from_image(mats.imgs[ty.as_index()].clone_weak()),
+                    sprite: get_machine_image(&assets, ty).to_sprite(),
                     vis: Visibility::Visible,
                     transform: Transform::from_translation(world_pos.extend(1.)),
                     _state_scoped: StateScoped(Screen::Game),
@@ -119,7 +120,6 @@ pub fn build_placeholder(
                     MachineType::StringCreator => e.insert(game::machines::StringCreator::new()),
                     MachineType::Electron => e.insert(game::machines::Electron {  }),
                     MachineType::Energy => e.insert(game::machines::Energy {  }),
-                    MachineType::Empty => todo!(),
                 };
                 // world.set_machine(world_pos, e.id());
                 mouse.clear_just_pressed(MouseButton::Left);
@@ -165,8 +165,9 @@ fn redraw_editing_arrow(
             building_arrow.points = None;
             cmd.spawn((
                 b.1.clone(),
+                // bevy_vello::svg(asset_server.load("embedded://svg/assets/fountain.svg")),
                 ForceArrow,
-                Transform::from_translation(Vec3::new(0., 0., 1.)),
+                Transform::from_translation(Vec3::new(0., 0., 1.)).with_scale(Vec3::splat(5.)),
                 Visibility::Visible,
             ));
         }

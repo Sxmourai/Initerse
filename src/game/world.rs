@@ -7,36 +7,35 @@ use super::{machines::{MachineCommon, MachineTag}, particles::{ParticleComponent
 
 
 #[derive(Resource)]
-pub struct MachineMaterialsHandles {
+pub struct CachedImages {
     pub imgs: Vec<Handle<Image>>,
     // pub mats: Vec<Handle<ColorMaterial>>,
     // pub cell_mesh: Handle<Mesh>,
 }
 
 
-pub fn load_mats_n_mesh(
+pub fn cache_images(
     mut cmd: Commands,
     // mut meshes: ResMut<Assets<Mesh>>,
     mut mats_assets: ResMut<Assets<ColorMaterial>>,
     images: Res<AssetServer>,
 ) {
-    bevy::log::info!("Loading materials & meshes...");
-    let mut imgs = vec![];
-    // let mut mats = vec![];
-    for ty in MachineType::iter() {
-        let img = images.load(ty.get_str("path").unwrap());
-        // let mut c = ColorMaterial::from_color(Color::WHITE);
-        // c.texture = Some(img.clone_weak());
-        // let mat = mats_assets.add(c);
-        imgs.push(img);
-        // mats.push(mat);
-    }
+    // bevy::log::info!("Loading textures...");
+    // let all_assets = images.load_folder("./");
+    // for ty in AssetPaths::iter() {
+    //     let img = images.load(ty.get_str("path").unwrap());
+    //     // let mut c = ColorMaterial::from_color(Color::WHITE);
+    //     // c.texture = Some(img.clone_weak());
+    //     // let mat = mats_assets.add(c);
+    //     imgs.push(img);
+    //     // mats.push(mat);
+    // }
 
-    cmd.insert_resource(MachineMaterialsHandles {
-        imgs,
-        // mats,
-        // cell_mesh: meshes.add(Rectangle::from_length(1.)),
-    });
+    // cmd.insert_resource(MachineMaterialsHandles {
+    //     imgs,
+    //     // mats,
+    //     // cell_mesh: meshes.add(Rectangle::from_length(1.)),
+    // });
 }
 
 

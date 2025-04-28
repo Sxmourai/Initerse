@@ -12,9 +12,9 @@ pub fn plugin(app: &mut App) {
     .add_plugins(InputManagerPlugin::<PlayerAction>::default())
     .add_plugins(bevy_prototype_lyon::plugin::ShapePlugin)
     .add_systems(OnEnter(Screen::Game), (
-        world::load_mats_n_mesh,
+        world::cache_images,
         spawn_guis,
-        hotbar::spawn_hotbar.after((world::load_mats_n_mesh)),
+        hotbar::spawn_hotbar.after((world::cache_images)),
     ))
     .add_systems(Update, (
         camera::movement,
@@ -25,6 +25,7 @@ pub fn plugin(app: &mut App) {
         hotbar::build_placeholder,
         world::update,
         machines::string_creator_updates,
+        machines::electron_updates,
         show_options.run_if(input_just_pressed(KeyCode::Escape))
     ).run_if(in_state(Screen::Game)))
     ;

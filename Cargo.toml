@@ -23,13 +23,14 @@ bevy_prototype_lyon = {git = "https://github.com/rparrett/bevy_prototype_lyon.gi
 tiny_bail = "0.4.3"
 # Bevy editor for debugging
 bevy-inspector-egui = "0.31.0"
-bevy_vello = {path = "bevy_vello"}
+bevy_asset_loader = {git="https://github.com/NiklasEi/bevy_asset_loader.git", branch="bevy_main", features = ["standard_dynamic_assets", "2d"]} # Bevy 0.16.0
+# bevy_vello = {path = "bevy_vello", features = ["svg"]}
 # https://github.com/NiklasEi/bevy_asset_loader
 
 
 [dependencies.bevy]
 version = "0.16.0"
-features = ["dynamic_linking",]
+features = ["dynamic_linking", "file_watcher"]
 
 [profile.dev]
 debug = 0

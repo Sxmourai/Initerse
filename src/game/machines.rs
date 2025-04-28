@@ -1,12 +1,20 @@
-use std::{ptr::NonNull, time::{Duration, Instant}};
+use std::{
+    ptr::NonNull,
+    time::{Duration, Instant},
+};
 
-use bevy::{ecs::{bundle::{BundleEffect, DynamicBundle, NoBundleEffect}, component::Mutable}, ptr::OwningPtr};
+use bevy::{
+    ecs::{
+        bundle::{BundleEffect, DynamicBundle, NoBundleEffect},
+        component::Mutable,
+    },
+    ptr::OwningPtr,
+};
 use strum_macros::{self, EnumIter, EnumProperty};
 
 use crate::*;
 
-use super::particles::ParticleComponent;
-
+use super::particles::{ParticleComponent, ParticleTag};
 
 #[derive(EnumProperty, EnumIter, Debug, Clone, Copy, PartialEq)]
 pub enum MachineType {
@@ -16,8 +24,8 @@ pub enum MachineType {
     Electron,
     #[strum(props(path = "energy.png", name = "Energy"))]
     Energy,
-    #[strum(props(path = "empty.png", name = "Empty"))]
-    Empty,
+    // #[strum(props(path = "empty.png", name = "Empty"))]
+    // Empty,
 }
 impl MachineType {
     pub fn as_index(self) -> usize {
@@ -86,11 +94,9 @@ pub type MachineCommonMut<'a> = (&'a mut Sprite, &'a mut Visibility, &'a mut Tra
 //     }
 // }
 
-
-
 #[derive(Debug, Component)]
 pub struct StringCreator {
-    last_creation: Instant
+    last_creation: Instant,
 }
 // impl_machine_trait!(StringCreator);
 impl StringCreator {
@@ -101,7 +107,6 @@ impl StringCreator {
     }
 }
 
-
 #[derive(Debug, Component)]
 pub struct Electron {}
 
@@ -111,7 +116,7 @@ pub struct Energy {}
 // #[macro_export]
 // macro_rules! impl_machine_trait {
 //     ($struct_name: tt) => {
-            
+
 //     };
 //     ($struct_name: tt, $update_fn: expr) => {
 //         impl MachineTrait for $struct_name {
@@ -143,7 +148,7 @@ pub struct Energy {}
 //     pub fn pos(&self) -> Vec2 {
 //         self.com.transform.translation.xy()
 //     }
-//     /// To be able to create invisible machines easily: 
+//     /// To be able to create invisible machines easily:
 //     /// ```
 //     /// let machine = MachineComponent::new().invisible();
 //     /// ```
@@ -183,7 +188,11 @@ pub struct MachineCommon {
 }
 impl std::fmt::Debug for MachineCommon {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MachineCommon").field("sprite", &self.sprite).field("vis", &self.vis).field("transform", &self.transform).finish()
+        f.debug_struct("MachineCommon")
+            .field("sprite", &self.sprite)
+            .field("vis", &self.vis)
+            .field("transform", &self.transform)
+            .finish()
     }
 }
 
@@ -198,22 +207,45 @@ impl std::fmt::Debug for MachineCommon {
 //     )
 // }
 
-
 #[derive(Component, Debug)]
 pub struct MachineTag;
 
-
 pub fn string_creator_updates(
     mut cmd: Commands,
-    string_creators: Query<(&mut StringCreator, &Transform, )>,
+    string_creators: Query<(&mut StringCreator, &Transform)>,
+    assets: Res<GameAssets>,
 ) {
     for (mut s, trans) in string_creators {
-        if s.last_creation.elapsed()>Duration::from_secs(1) {
-            let mut p = ParticleComponent::new(trans.translation.xy(), Sprite::from_color(Color::linear_rgb(1., 0., 0.), Vec2::splat(20.)));
+        if s.last_creation.elapsed() > Duration::from_secs(1) {
+            let mut p = ParticleComponent::new(
+                trans.translation.xy(),
+                get_image(&assets, "proton.png").unwrap().to_sprite(),
+            );
             p.vel.0.x = 1.;
             cmd.spawn((p, StateScoped(Screen::Game)));
             s.last_creation = Instant::now();
         }
-
     }
 }
+
+pub fn electron_updates(
+    mut cmd: Commands,
+    electrons: Query<(&mut Electron, &Transform), Without<ParticleTag>>,
+    mut particles: Query<(&Transform, &mut Visibility), With<ParticleTag>>,
+) {
+    for (mut e, machine_pos) in electrons {
+        particles.par_iter_mut().for_each(|(p_pos, mut p_vis)| {
+            if machine_pos
+                .translation
+                .xy()
+                .distance_squared(p_pos.translation.xy())
+                < 100.
+            {
+                *p_vis = Visibility::Hidden;
+                // e.inventory.push()
+            }
+        });
+    }
+}
+
+

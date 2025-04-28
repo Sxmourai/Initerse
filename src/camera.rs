@@ -17,7 +17,8 @@ pub fn add(mut commands: Commands) {
         (PlayerAction::Left, KeyCode::KeyA),
     ]);
     commands.spawn((
-        Camera2d,
+        Camera2d, 
+        // bevy_vello::render::VelloView, 
         Transform::from_xyz(0., 0., 1.).looking_at(Vec3::ZERO, Vec3::Y),
         PlayerCamera {
             movement_speed: Vec2::ZERO,

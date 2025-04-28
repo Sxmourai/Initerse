@@ -22,5 +22,9 @@ fn cleanup_system<T: Component>(mut commands: Commands, q: Query<Entity, With<T>
     - Use/define more plugins (dis/enable parts of game, cleaner code)
     - Separate the "release" and "dev" mode better, with features & all (look more how to do nice releases: https://github.com/tbillington/bevy_best_practices?tab=readme-ov-file#release)
     - Look into Tantan's macro for asset loading: https://www.youtube.com/watch?v=ModFC1bhobA
+    - Lottie seems cool for animations https://lottiefiles.com/free-animations/json
 
 - https://github.com/bevyengine/bevy/blob/main/docs/profiling.md
+- Make some shaders: https://github.com/alphastrata/shadplay/
+- Stop loading all images inside "images" folder, use a typed definition with samplers & all
+

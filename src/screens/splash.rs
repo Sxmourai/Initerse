@@ -6,6 +6,8 @@ use bevy::{
     prelude::*,
 };
 
+use crate::{get_image, GameAssets};
+
 use super::Screen;
 
 
@@ -46,20 +48,21 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 const SPLASH_BACKGROUND_COLOR: Color = Color::srgb(1., 1., 1.);
-const SPLASH_DURATION_SECS: f32 = 1.8;
+const SPLASH_DURATION_SECS: f32 = 0.1;
 const SPLASH_FADE_DURATION_SECS: f32 = 0.6;
 
-fn spawn_splash_screen(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn spawn_splash_screen(mut commands: Commands, assets: Res<AssetServer>) {
     commands.spawn((
     Node {
         margin: UiRect::all(Val::Auto),
         width: Val::Percent(70.0),
         ..default()
     },
-    ImageNode::new(asset_server.load_with_settings(
+    ImageNode::new(assets.load_with_settings(
         // This should be an embedded asset for instant loading, but that is
         // currently [broken on Windows Wasm builds](https://github.com/bevyengine/bevy/issues/14246).
-        "initerse_logo.png",
+        "images/initerse_logo.png", 
+        
         |settings: &mut ImageLoaderSettings| {
             // Make an exception for the splash image in case
             // `ImagePlugin::default_nearest()` is used for pixel art.
@@ -134,7 +137,7 @@ fn tick_splash_timer(time: Res<Time>, mut timer: ResMut<SplashTimer>) {
 
 fn check_splash_timer(timer: ResMut<SplashTimer>, mut next_screen: ResMut<NextState<Screen>>) {
     if timer.0.just_finished() {
-        next_screen.set(Screen::Title);
+        // next_screen.set(Screen::Title);
     }
 }
 
