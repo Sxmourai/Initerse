@@ -3,7 +3,7 @@ use strum::{EnumProperty, IntoEnumIterator};
 
 use crate::*;
 
-use super::{machines::{MachineCommon, MachineTag}, particles::{Velocity}};
+use super::{machines::{MachineCommon, MachineTag}, particles::{BackgroundMaterial, Velocity}};
 
 
 #[derive(Resource)]
@@ -77,5 +77,19 @@ pub fn update(
     for mut p in &mut particles { // Shared particle behaviour
         p.2.translation = (p.2.translation.xy()+p.4.0).extend(1.);
     }
+}
+
+pub fn spawn_background(
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<BackgroundMaterial>>,
+    mut cmd: Commands,
+    w: Query<&Window>,
+) {
+    let w = w.single().unwrap();
+    cmd.spawn((
+        Mesh2d(meshes.add(Rectangle::new(w.width(), w.height()))),
+        MeshMaterial2d(materials.add(BackgroundMaterial { seed: 1 })),
+        Transform::from_xyz(0., 0., 0.),
+    ));
 }
 

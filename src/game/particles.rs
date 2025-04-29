@@ -54,3 +54,16 @@ pub fn enemy_particle_random_motion(
     }
 }
 
+
+#[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
+pub struct BackgroundMaterial {
+    #[uniform(0)]
+    pub seed: u32,
+}
+
+
+impl sprite::Material2d for BackgroundMaterial {
+    fn fragment_shader() -> ShaderRef {
+        "shaders/background.wgsl".into()
+    }
+}

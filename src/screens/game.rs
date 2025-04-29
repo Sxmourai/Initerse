@@ -11,11 +11,13 @@ pub fn plugin(app: &mut App) {
     .add_plugins(InputManagerPlugin::<GameAction>::default())
     .add_plugins(InputManagerPlugin::<PlayerAction>::default())
     .add_plugins(bevy_prototype_lyon::plugin::ShapePlugin)
+    .add_plugins(sprite::Material2dPlugin::<particles::BackgroundMaterial>::default())
     .add_systems(OnEnter(Screen::Game), (
         world::cache_images,
         spawn_guis,
         hotbar::spawn_hotbar.after((world::cache_images)),
-        particles::enemy_particle_random_motion_setup
+        particles::enemy_particle_random_motion_setup,
+        world::spawn_background,
     ))
     .add_systems(Update, (
         camera::movement,

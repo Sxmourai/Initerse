@@ -8,3 +8,6 @@ pub use crate::game::machines::MachineType;
 pub use crate::game::machines::MachineTag;
 pub use crate::saves::GameConfig;
 pub use crate::helpers::*;
+
+pub use bevy::reflect::TypePath;
+pub use bevy::render::render_resource::{AsBindGroup, ShaderRef};
